@@ -39,6 +39,8 @@ class CenzorGeneratorDPM:
             negative_prompt: str = "", 
             num_inference_steps: int = 20, 
             guidance_scale: float = 7.5, 
+            width: int = 1024,
+            height: int = 1024,
             seed: int = None,
             output_name: str = "output.png"):
         start_gen = time.time()
@@ -56,8 +58,8 @@ class CenzorGeneratorDPM:
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generator,
-            width=1024,
-            height=1024
+            width=width,
+            height=height
         ).images[0]
         
         image.save(output_name)

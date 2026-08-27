@@ -1,49 +1,62 @@
 import math
 import torch
-from PIL import Image
-from diffusers import StableDiffusionXLInpaintPipeline
+from diffusers import AutoencoderKL, StableDiffusionXLInpaintPipeline
 from composer import Composer, CompositionResult
+from PIL import Image
+from diffusers import DPMSolverMultistepScheduler
 
-
-class ImageInpainter:
+class Inpainter:
     def __init__(
         self, 
         model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        device: str = "mps",
-        torch_dtype: torch.dtype = torch.float16
+        device: str = "mps"
     ):
         self.device = device
-        self.dtype = torch_dtype
-        
-        # Немой дефолтный композер для автоматического режима
         self._default_composer = Composer(verbose=False)
 
-        print(f"[Inpainter] Загрузка модели {model_id} на {device}...")
+        self.dtype = torch.float16
+
+        print("[Inpainter] Загрузка VAE...")
+        vae = AutoencoderKL.from_pretrained(
+            "madebyollin/sdxl-vae-fp16-fix", 
+            torch_dtype=self.dtype,
+            use_safetensors=True
+        )
+
+        print(f"[Inpainter] Загрузка основной модели {model_id}...")
         self.pipe = StableDiffusionXLInpaintPipeline.from_pretrained(
             model_id,
-            torch_dtype=self.torch_dtype,
+            vae=vae,
+            torch_dtype=self.dtype,
             use_safetensors=True,
-            variant="fp16"
-        ).to(self.device)
+            variant="fp16" if self.dtype == torch.float16 else None
+        )
+        self.pipe.scheduler = DPMSolverMultistepScheduler.from_config( 
+                self.pipe.scheduler.config,
+                use_karras_sigmas = True #включаем сигмы Карраса для ускорения генерации 
+                )
+        self.pipe.scheduler.algorithm_type = "dpmsolver++"
+        
 
+        print(f"[Inpainter] Перевод моделей на {device}...")
+        self.pipe.to(device)
+
+        # Оставляем ТОЛЬКО slicing — tiling на MPS ломает память (contiguous stride)
+        self.pipe.vae.enable_slicing()
+        self.pipe.vae.disable_tiling()
 
     def inpaint(
         self,
         composition: CompositionResult = None,
         background: Image.Image = None,
         figure: Image.Image = None,
-        prompt: str = "seamless integration, high quality, realistic lighting, soft shadows",
-        negative_prompt: str = "blurry, low quality, sharp edges, artifacts, ugly distortion",
+        prompt: str = "seamless integration, high quality, realistic lighting",
+        negative_prompt: str = "blurry, low quality, sharp edges, artifacts",
         strength: float = 0.65,
-        denoise_power: float = 1.0,
+        denoise_steps_coef: float = 1.0,
         guidance_scale: float = 7.5,
         seed: int = None
     ) -> Image.Image:
-        """
-        Метод гармонизации изображения. Принимает либо готовый CompositionResult,
-        либо пару (background, figure) для автоматической немой сборки.
-        """
-        # 1. Извлечение коллажа и маски в зависимости от переданных аргументов
         if composition is not None:
             collage = composition.collage
             mask = composition.mask
@@ -52,29 +65,32 @@ class ImageInpainter:
             collage = comp_res.collage
             mask = comp_res.mask
         else:
-            raise ValueError("Передайте либо результат работы Composer, либо парами 'background' и 'figure'!")
+            raise ValueError("Передайте либо результат работы Composer, либо пару 'background' и 'figure'!")
 
-        # 2. Определяем количество шагов диффузии в зависимости от силы денойза
-        base_steps = 20
-        num_inference_steps = max(1, math.ceil(base_steps * denoise_power))  
-        # Увеличиваем шаги при большей мощности денойза
+        base_steps = 25
+        num_inference_steps = max(1, math.ceil(base_steps * denoise_steps_coef))
 
-        # 3. Фиксация генератора случайных чисел (Seed)
         generator = None
         if seed is not None:
             generator = torch.Generator(device="cpu").manual_seed(seed)
 
-        # 4. Запуск диффузионного пайплайна SDXL Inpaint
+        if self.device == "mps":
+            torch.mps.empty_cache()
+
         print(f"[Inpainter] Генерация (Steps: {num_inference_steps}, Strength: {strength})...")
-        output = self.pipe(
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            image=collage,
-            mask_image=mask,
-            strength=strength,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
-            generator=generator
-        ).images[0]
+        
+        with torch.inference_mode():
+            output = self.pipe(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                image=collage.convert("RGB"),
+                mask_image=mask.convert("L"),
+                strength=strength,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                generator=generator,
+                height=collage.height,
+                width=collage.width
+            ).images[0]
 
         return output

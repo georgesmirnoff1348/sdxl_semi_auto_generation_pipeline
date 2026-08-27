@@ -19,7 +19,7 @@ class HealthyGen:
         nationality: str,
         clothing: str,
         output_num: int,
-        seed: int = None,  # ◄◄◄ Можно передать свой сид или оставить None
+        seed: int = None,
     ):
         print(
             "--- СИСТЕМА ЦЕНЗОР: ИЗВЛЕЧЕНИЕ ЛИЦЕВЫХ ДАННЫХ ИЗ БАЗ К.О.Н.Т.У.Р. ---"
