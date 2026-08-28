@@ -3,10 +3,10 @@ import numpy as np
 import random
 from PIL import Image
 
-def generate_frame_mask(shot_type: str = "close-up", size: int = 1024) -> Image.Image:
+def generate_frame_mask(composition: str = "close-up", size: int = 1024) -> Image.Image:
     mask = np.zeros((size, size), dtype=np.uint8)
     
-    if shot_type == "close-up":
+    if composition == "close-up":
         # --- БОЛЬШАЯ ТРАПЕЦИЯ ДЛЯ CLOSE-UP ---
         # Вариируем ширину верха (40-60%) и низа (70-90%)
         top_w = int(size * random.uniform(0.40, 0.60))
@@ -24,10 +24,10 @@ def generate_frame_mask(shot_type: str = "close-up", size: int = 1024) -> Image.
         
         cv2.fillPoly(mask, [pts], 255)
         
-    elif shot_type == "half-body":
+    elif composition == "half-body":
         # --- ПРЯМОУГОЛЬНИК ДЛЯ HALF-BODY ---
-        rect_w = int(size * random.uniform(0.55, 0.75))
-        rect_h = int(size * random.uniform(0.70, 0.95))
+        rect_w = int(size * random.uniform(0.65, 0.90))
+        rect_h = int(size * random.uniform(0.80, 0.95))
         
         x_left = random.randint(50, max(50, (size - rect_w)-50))
         
@@ -41,8 +41,3 @@ def generate_frame_mask(shot_type: str = "close-up", size: int = 1024) -> Image.
     mask = cv2.GaussianBlur(mask, (gb, gb), 0)
 
     return Image.fromarray(mask)
-# Для крупных портретов:
-
-for i in range (5):
-    # Для планов по пояс:
-    mask_half = generate_frame_mask(shot_type="close-up", size=1024).save(f"mask_half{i}.png")

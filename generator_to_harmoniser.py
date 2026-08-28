@@ -84,3 +84,6 @@ comp.compose(background=Image.open(background_file),
             figure=Image.open(comrade_filename),
             output_mode= "collage_only",
             ).save(composed_dir / composedname, format="PNG")
+
+
+###MEANS TO BE FINISHED BY THE HARMONISERS###

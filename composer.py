@@ -155,15 +155,18 @@ class Composer:
             return Image.fromarray(blurred)
 
     def compose(self,
-        background: Image.Image,
-        figure: Image.Image,
+        background: Image.Image = None,
+        figure: Image.Image = None,
         position: tuple[int, int] = (0, 0),
         scale: float = 1.0,
         mask_draw_mode: str = "full",
         output_mode: str = "mask_and_collage"
         ) -> CompositionResult:
         #Корректный метод композиции для SDXL Inpaint
-        
+        if background is None:
+            raise ValueError ("No background")
+        if figure is None:
+            raise ValueError ("No figure")
         # 0. Приводим ФОН к кратности 64
         bg_w = (background.width // 64) * 64
         bg_h = (background.height // 64) * 64

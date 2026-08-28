@@ -38,7 +38,7 @@ class HealthyGen:
             f"soft studio lighting, sharp focus, analogue film grain, masterpiece photography"
         )
 
-        antiprompt_healthy = (
+        negative_healthy = (
             "distorted face, extreme close-up, macro shot, cropped head, feet, "
             "wide shot, cap, hat, military uniform, ushanka, kgb, communist, "
             "military officer, police, visor cap, peaked cap, epaulets, medals, badge, "
@@ -51,7 +51,7 @@ class HealthyGen:
         _, used_seed = self.normal_generator.generate(
             prompt=prompt_healthy,
             prompt_2=prompt2_healthy,
-            negative_prompt=antiprompt_healthy,
+            negative_prompt=negative_healthy,
             num_inference_steps=25,
             guidance_scale=7.5,
             seed=seed,
