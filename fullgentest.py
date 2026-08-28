@@ -33,7 +33,7 @@ prompt_city = (f"""
 """)
 
 negative_prompt_city = ("""
-    centered composition, winter, snow, distorted architecture, warped, 
+    centered composition, ground, winter, snow, distorted architecture, warped, 
     destroyed, ruins, aerial view, top-down, low-angle, anime, 
     illustration, painting, text, skyscrapers, high-rise
 """)
