@@ -8,8 +8,10 @@ model0 = "stabilityai/stable-diffusion-xl-base-1.0"
 model1 = "SG161222/RealVisXL_V4.0" #реалистичные фото
 
 class CenzorGeneratorDPM:
-    def __init__(self, crooked=False):
-        print("--- ИНИЦИАЛИЗАЦИЯ ДЕТЕРМИНИРОВАННОГО ЯДРА К.О.Н.Т.У.Р. ---")
+    def __init__(self, crooked=False, lora = None, lora_weight = None):
+        cenzorkerneltype = "СТОХАСТИЧЕСКОГО" if crooked else "ДЕТЕРМИНИРОВАННОГО"
+        print(f"--- ИНИЦИАЛИЗАЦИЯ {cenzorkerneltype} ЯДРА К.О.Н.Т.У.Р. ---")
+        
         self.device = "mps" if torch.backends.mps.is_available() else "cpu"
         model_id = model1
         # Загрузка пайплайна
@@ -26,6 +28,12 @@ class CenzorGeneratorDPM:
             self.pipeline.scheduler.algorithm_type = "sde-dpmsolver++"
         else:
             self.pipeline.scheduler.algorithm_type = "dpmsolver++"
+
+        if lora and lora_weight:
+            print(f"🔗 Подключение LoRA: {lora}")
+            self.pipeline.load_lora_weights(lora, adapter_name="single_lora")
+            self.pipeline.set_adapters(["single_lora"], adapter_weights=[lora_weight])
+
 
         self.pipeline = self.pipeline.to(self.device)
         print("✅ Модель успешно загружена в ОЗУ")
