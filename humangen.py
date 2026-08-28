@@ -18,7 +18,8 @@ class HealthyGen:
         gender: str,
         nationality: str,
         clothing: str,
-        output_num: int,
+        composition: str,
+        output_name: str,
         seed: int = None,
     ):
         print(
@@ -26,7 +27,7 @@ class HealthyGen:
         )
 
         prompt_healthy = (
-            f"A detailed waist-up portrait of a {age} {nationality} {gender}, "
+            f"A detailed {composition} of a {age} {nationality} {gender}, "
             f"wearing {clothing}, distinct ethnic facial features, authentic eyes, "
             f"realistic skin texture, solid neutral studio background, 35mm photograph"
         )
@@ -38,8 +39,8 @@ class HealthyGen:
         )
 
         antiprompt_healthy = (
-            "asymmetry, close-up, extreme close-up, macro shot, cropped head, feet, "
-            "wide shot, cap, hat, military uniform, ushanka, kgb, Soviet, communist, "
+            "distorted face, extreme close-up, macro shot, cropped head, feet, "
+            "wide shot, cap, hat, military uniform, ushanka, kgb, communist, "
             "military officer, police, visor cap, peaked cap, epaulets, medals, badge, "
             "siloviki, 3d render, anime, smooth plastic skin, blurry, crooked, "
             "digital artifacts, illustration, drawing, painting, unrealistic, cartoon, "
@@ -52,13 +53,9 @@ class HealthyGen:
             prompt_2=prompt2_healthy,
             negative_prompt=antiprompt_healthy,
             num_inference_steps=25,
-            guidance_scale=4.5,
+            guidance_scale=7.5,
             seed=seed,
-            output_name=f"comrade_№{output_num}.png",
-        )
-
-        print(
-            f"--- СИСТЕМА ЦЕНЗОР: ИЗВЛЕЧЕНА ЕДИНИЦА №{output_num} (SEED: {used_seed}) ---"
+            output_name=output_name,
         )
         torch.mps.empty_cache()
         print("✅ Очистка кэша MPS завершена. Память освобождена.")

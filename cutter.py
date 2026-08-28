@@ -2,7 +2,7 @@ from PIL import Image
 import torch
 from transformers import pipeline
 
-def remove_background(picture_path, output_path):
+def remove_background(picture_path: str, output_path: str):
     pipe = pipeline(
         "image-segmentation", 
         model="briaai/RMBG-1.4", 

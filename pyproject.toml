@@ -11,6 +11,8 @@ dependencies = [
 	"opencv-python",
 	"pillow",
 	"safetensors",
+	"scikit-image>=0.26.0",
 	"torch",
+	"torchvision>=0.28.0",
 	"transformers",
 ]

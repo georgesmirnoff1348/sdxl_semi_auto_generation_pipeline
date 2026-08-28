@@ -159,8 +159,8 @@ class Composer:
         figure: Image.Image,
         position: tuple[int, int] = (0, 0),
         scale: float = 1.0,
-        mode: str = "full",
-        #interactive: bool = False
+        mask_draw_mode: str = "full",
+        output_mode: str = "mask_and_collage"
         ) -> CompositionResult:
         #Корректный метод композиции для SDXL Inpaint
         
@@ -188,7 +188,7 @@ class Composer:
         alpha_channel = fg_resized.split()[3]
 
         # 4. Генерация локальной маски инпейнта
-        fg_mask_patch = self._generate_mask(alpha_channel, mode=mode, background=background)
+        fg_mask_patch = self._generate_mask(alpha_channel, mode=mask_draw_mode, background=background)
 
         # 5. Сборка коллажа и маски одинакового размера
         collage = background.copy().convert("RGB")
@@ -203,12 +203,15 @@ class Composer:
         # чтобы края маски корректно совмещались с объектом
         full_mask.paste(fg_mask_patch, position)
 
-        if mode == "full":
+        if mask_draw_mode == "full":
             # Для режима "full" маска должна быть полностью белой (255) по всей области объекта
             full_mask = Image.new("L", background.size, 255)
 
         # Важно: гарантируем, что маска возвращается в RGB, если этого требует пайплайн
-        return CompositionResult(
-            collage=collage, 
-            mask=full_mask.convert("RGB")
-        )
+        if output_mode == "mask_and_collage":
+            return CompositionResult(
+                collage=collage, 
+                mask=full_mask.convert("RGB")
+            )
+        elif output_mode == "collage_only":
+            return collage
