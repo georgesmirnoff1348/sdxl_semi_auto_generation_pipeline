@@ -34,7 +34,7 @@ def generate_frame_mask(composition: str = "close-up", size: int = 1024) -> Imag
         cv2.rectangle(mask, (x_left, size - rect_h), (x_left + rect_w, size), 255, -1)
         
     else:
-        raise ValueError(f"Неизвестный shot_type: {shot_type}")
+        raise ValueError(f"Неизвестный shot_type: {composition}")
 
     # Мягкий край для SDXL
     gb = random.choice((51,61,77,91))

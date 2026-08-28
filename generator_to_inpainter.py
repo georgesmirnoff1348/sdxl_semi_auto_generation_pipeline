@@ -52,7 +52,7 @@ citygen.generate(
 #1 Рисуем чела на фон инпейнтом
 from cenzor_inpainter import CenzorInpainter
 inpainter = CenzorInpainter()
-composition = random.choice(("close-up", "half-body"))
+composition = "close-up" #random.choice(("close-up", "half-body"))
 
 inpainted_dir = Path("gen/inpaints")
 inpainted_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
@@ -60,12 +60,12 @@ inphuman_filename = get_next_available_filename(directory=inpainted_dir, prefix=
 background_file = random.choice(list(back_dir.glob("*.png")))
 
 inpainter.inpaint_human(background=Image.open(background_file),
-                        composition=composition,
-                        age="old", 
+                        composition="close-up",
+                        age="young", 
                         gender="man",
-                        nationality="russian", 
+                        nationality="georgian", 
                         clothing="worker suit",
-                        strength=0.9,
+                        strength=0.8,
                         denoise_steps_coef=1.0,
-                        guidance_scale=11.0
+                        guidance_scale=10.0
                         ).save(inpainted_dir/inphuman_filename)

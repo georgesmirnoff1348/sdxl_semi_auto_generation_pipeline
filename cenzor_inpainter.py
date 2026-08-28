@@ -76,24 +76,24 @@ class CenzorInpainter:
 
         print(f"[Inpainter] Генерация (Steps: {num_inference_steps}, Strength: {strength})...")
 
-        # Первый текстовый кодер (CLIP ViT-L) — задает геометрию и базовую суть
+        # CLIP ViT-L — геометрия, объект и тип съемки
         prompt_healthy = (
-            f"""foreground subject, filling the scene, {composition} portrait 
-            photo of a {age} {nationality} {gender}, wearing {clothing}."""
+            f"Extreme close-up photo of {age} {nationality} {gender}, wearing {clothing}, "
+            f"waist-up portrait, medium shot, realistic skin, standing outdoors in front of a background"
         )
 
-        # Второй текстовый кодер (OpenCLIP ViT-bigG) — задает стиль, свет и детализацию
+        # OpenCLIP ViT-bigG — стилистика (без слова document!)
         prompt2_healthy = (
-            f"1980s soviet archival document portrair photo, {composition} of a {age} {nationality} {gender}, "
-            f"wearing {clothing}, natural skin texture, analogue film grain"
+            f"1980s soviet street portrait photography, film photo, medium shot of a {age} {nationality} {gender}, "
+            f"wearing {clothing}, natural skin texture, soft daylight, analogue film grain"
         )
 
-        # Негативный промпт (дублируется или разделяется аналогично)
-        negative_healthy = ("""
-            deformed face, bad anatomy, military uniform, hat, legs, full-body, distant view, small human
-            3d render, illustration, smooth plastic skin, low resolution, blurry
-        """)
-
+        # Негативный промпт — режем плакаты, рисунки и рамки
+        negative_healthy = (
+            "distant view, poster, painting, drawing, illustration, billboard, framed picture, sign, "
+            "deformed face, bad anatomy, military uniform, hat, legs, feet, full-body, "
+            "small human, 3d render, smooth plastic skin, low resolution, blurry"
+        )
         with torch.inference_mode():
             output = self.pipe(
                 prompt=prompt_healthy,
