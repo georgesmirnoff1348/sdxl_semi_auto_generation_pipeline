@@ -1,18 +1,11 @@
 from PIL import Image
-import torch
-from transformers import pipeline
+from rembg import remove, new_session
 
+# Инициализируем сессию с моделью isnet-general-use (основа для RMBG) 
+# или явно briaai (в свежих версиях rembg доступен и bria-rmbg)
 def remove_background(picture_path: str, output_path: str):
-    pipe = pipeline(
-        "image-segmentation", 
-        model="briaai/RMBG-1.4", 
-        trust_remote_code=True,
-        device = torch.device ("mps") if torch.backends.mps.is_available() else "cpu"
-    )
+    session = new_session("birefnet-general")
 
-    image = Image.open(picture_path).convert("RGB")
-
-    final_image = pipe(image)
-
-    final_image.save(output_path)
-    print(f"Фон в {picture_path} успешно удален!")
+    input_image = Image.open(picture_path)
+    output_image = remove(input_image, session=session)
+    output_image.save(output_path)

@@ -1,6 +1,7 @@
 #0 Генерация фона (будет отменено в итоговом пайпе)
 #Подключение библиотек и создание имен, создание экземпляра генератора
 from pathlib import Path
+from PIL import Image
 
 back_dir = Path("gen/backgrounds")
 back_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
@@ -14,7 +15,7 @@ backname = get_next_available_filename(directory= back_dir, prefix= back_prefix)
 
 import random
 places = (
-    "quiet soviet street",
+    "quiet soviet street view",
     "soviet bus stop",
     "soviet factory",
     "soviet khrushchyovka building",
@@ -22,22 +23,22 @@ places = (
     "soviet hospital entrance",
     "empty soviet courtyard with concrete fence",
     "soviet boiler house with high chimney",
-    "pedestrian alley between panel buildings",
+    #"pedestrian alley between panel buildings",
     "deserted tram stops and tracks"
 )
 
 prompt_city = (f"""
     architectural photography of a {random.choice(places)}, 1980s,
-    straight perspective, 
+    off-center composition, just background
 """)
 
 negative_prompt_city = ("""
-    winter, snow, distorted architecture, warped, destroyed, ruins,
-    aerial view, top-down, low-angle, anime, illustration, painting,
-    text, skyscrapers, high-rise
+    centered composition, winter, snow, distorted architecture, warped, 
+    destroyed, ruins, aerial view, top-down, low-angle, anime, 
+    illustration, painting, text, skyscrapers, high-rise
 """)
 
-"""
+
 citygen.generate(
     prompt=prompt_city,
     negative_prompt=negative_prompt_city,
@@ -45,26 +46,24 @@ citygen.generate(
     num_inference_steps=25,
     guidance_scale=7.5
 )
-"""
+
 
 #1 Генерация чела
-"""from humangen import HealthyGen
+from humangen import HealthyGen
 hg = HealthyGen()
 
 comrade_dir = Path("gen/comrades")
 comrade_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
 comrade_prefix = "comrade_"
 comradename = get_next_available_filename(directory= comrade_dir, prefix= comrade_prefix)
-hg.generate_healthy(age = "adult",
+hg.generate_healthy(age = "young",
                     gender="man",
-                    nationality="chechen",
-                    clothing="simple worker shirt",
+                    nationality="georgian",
+                    clothing="suite",
                     composition="half-body photo",
                     output_name= str(comrade_dir / comradename)
 )
 comrade_filename = comrade_dir / comradename
-"""
-comrade_filename = "comrade_4"
 
 #2 Очистка от фона
 from cutter import remove_background
@@ -79,9 +78,9 @@ composed_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, е�
 clean_name = Path(comrade_filename).stem 
 num = int(clean_name.split("_")[-1])
 
-composedname = f"photo_{num}"
+composedname = f"photo_{num}.png"
 background_file = random.choice(list(back_dir.glob("*.png")))
-comp.compose(background=str(background_file), 
-            figure=str(comrade_filename),
-            output_mode= "collage"
-            ).save(composed_dir / composedname)
+comp.compose(background=Image.open(background_file), 
+            figure=Image.open(comrade_filename),
+            output_mode= "collage_only",
+            ).save(composed_dir / composedname, format="PNG")

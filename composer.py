@@ -11,7 +11,7 @@ class CompositionResult:
 
 class Composer:
     def __init__(self,
-                 verbose: bool = True,
+                 verbose: bool = False,
                  mask_inflate: int = 30,
                  interactive: bool = False):
         self.verbose = verbose
@@ -215,3 +215,8 @@ class Composer:
             )
         elif output_mode == "collage_only":
             return collage
+        else:
+            raise ValueError(
+                f"Некорректный output_mode='{output_mode}'. "
+                f"Допустимые значения: 'collage_only', 'mask_and_collage'."
+            )

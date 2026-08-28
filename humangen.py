@@ -27,13 +27,13 @@ class HealthyGen:
         )
 
         prompt_healthy = (
-            f"A detailed {composition} of a {age} {nationality} {gender}, "
+            f"A {composition} of a {age} {nationality} {gender}, "
             f"wearing {clothing}, distinct ethnic facial features, authentic eyes, "
             f"realistic skin texture, solid neutral studio background, 35mm photograph"
         )
 
         prompt2_healthy = (
-            f"A waist-up shot of a {age} {nationality} {gender}, "
+            f"A {composition} of a {age} {nationality} {gender}, wearing {clothing}"
             f"1980s soviet archival document portrait, neutral serious expression, "
             f"soft studio lighting, sharp focus, analogue film grain, masterpiece photography"
         )
