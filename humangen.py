@@ -43,6 +43,7 @@ class HealthyGen:
         )
         print ("--- СИСТЕМА ЦЕНЗОР: ПОИСК В ФИЗИЧЕСКИХ БАЗАХ ПО ЗАПРОСУ ---")
         print (f"--- ЗАПРОС: {prompt_healthy} ---")
+        
         # Пробрасываем seed в ядро
         _, used_seed = self.normal_generator.generate(
             prompt=prompt_healthy,

@@ -13,10 +13,10 @@ print ("--- СИСТЕМА ЦЕНЗОР: ВЫГРУЗКА В ЭЛЕКТРОНН�
 print (f"--- СИСТЕМА ЦЕНЗОР: ВЫБРАНА ДИРЕКТОРИЯ {comrades_dir} ---")
 print (f"--- СИСТЕМА ЦЕНЗОР: ИМЯ ФАЙЛА {comrade_filename} ---")
 
-hgen.generate_healthy(age="young",
-                      gender="woman",
-                      nationality="ukrainian",
-                      clothing="simple shirt",
+hgen.generate_healthy(age="adult",
+                      gender="man",
+                      nationality="georgian",
+                      clothing="shirt",
                       composition="half-body photo",
                       output_name=comrades_dir / comrade_filename)
 print(f"--- СИСTЕМА ЦЕНЗОР: ПРОИЗВЕДЕНО ИЗВЛЕЧЕНИЕ В ЭЛЕКТРОННУЮ БАЗУ ПОД ИМЕНЕМ {comrades_dir / comrade_filename}")
@@ -27,16 +27,12 @@ from cenzor_inpainter import CenzorInpainter
 inpainter = CenzorInpainter()
 
 places = (
-    "quiet soviet street",
-    "soviet bus stop",
-    "soviet factory",
-    "soviet khrushchyovka building",
-    "empty rusted soviet playground, simple metal swing",
-    "soviet hospital entrance",
-    "empty soviet courtyard with concrete fence",
-    "soviet boiler house",
-    "panel buildings",
-    "deserted tram stops and tracks"
+    "quiet russian street",
+    #"soviet factory",
+    #"soviet concrete fence",
+    #"soviet industrial district",
+    #"panel buildings",
+    #"deserted train station"
 )
 
 inpainted_dir = Path("gen/inpaints")
