@@ -13,10 +13,10 @@ print ("--- СИСТЕМА ЦЕНЗОР: ВЫГРУЗКА В ЭЛЕКТРОНН�
 print (f"--- СИСТЕМА ЦЕНЗОР: ВЫБРАНА ДИРЕКТОРИЯ {comrades_dir} ---")
 print (f"--- СИСТЕМА ЦЕНЗОР: ИМЯ ФАЙЛА {comrade_filename} ---")
 
-hgen.generate_healthy(age="old",
+hgen.generate_healthy(age="adult",
                       gender="man",
-                      nationality="belorus",
-                      clothing="worker clothes",
+                      nationality="georgian",
+                      clothing="simple shirt",
                       composition="half-body photo",
                       output_name=comrades_dir / comrade_filename)
 print(f"--- СИСTЕМА ЦЕНЗОР: ПРОИЗВЕДЕНО ИЗВЛЕЧЕНИЕ В ЭЛЕКТРОННУЮ БАЗУ ПОД ИМЕНЕМ {comrades_dir / comrade_filename}")
@@ -60,5 +60,5 @@ inpainter.inpaint_back(figure=Image.open(comrades_dir / comrade_filename),
                     back_object = random.choice(places),
                     strength=1.0,
                     denoise_steps_coef=1.0,
-                    guidance_scale=6.0
+                    guidance_scale=7.5
                     ).save(inpainted_dir/inpback_filename)
