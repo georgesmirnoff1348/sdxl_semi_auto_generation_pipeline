@@ -79,18 +79,20 @@ class CenzorInpainter:
 
         if self.device == "mps":
             torch.mps.empty_cache()
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
 
         print(f"[Inpainter] Генерация (Steps: {num_inference_steps}, Strength: {strength})...")
 
         # CLIP ViT-L — геометрия, объект и тип съемки
         prompt_healthy = (
-            f"Extreme close-up photo of {age} {nationality} {gender}, wearing {clothing}, "
+            f"{composition} photo of {age} {nationality} {gender}, wearing {clothing}, "
             f"waist-up portrait, medium shot, realistic skin, standing outdoors in front of a background"
         )
 
         # OpenCLIP ViT-bigG — стилистика (без слова document!)
         prompt2_healthy = (
-            f"1980s soviet street portrait photography, film photo, medium shot of a {age} {nationality} {gender}, "
+            f"1980s soviet street portrait photography, film photo, {composition} of a {age} {nationality} {gender}, "
             f"wearing {clothing}, natural skin texture, soft daylight, analogue film grain"
         )
 

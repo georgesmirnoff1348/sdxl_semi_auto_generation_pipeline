@@ -119,8 +119,6 @@ class Composer:
             - edge: кольцевая маска (только шов)
             - background_primary: полная маска объекта + контекст фона
             - figure_primary: маска фона ВОКРУГ объекта (сам объект вырезан из маски)
-            - inside_out: предназначен для инвертированной маски, чтобы рисовать фон за персонажем
-            и скорее всего я его никогда не применю, потому что тут уже архитектура течет
             """
             if outer_pad is None:
                 outer_pad = max((self.mask_inflate // 5) * 4, 1)  
@@ -135,12 +133,7 @@ class Composer:
             kernel_inner = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (inner_pad * 2 + 1, inner_pad * 2 + 1))
             dilated = cv2.dilate(binary, kernel_outer, iterations=1)
             eroded = cv2.erode(binary, kernel_inner, iterations=1)
-            if mode == "inside_out":
-                eroded = cv2.erode(binary, kernel_outer, iterations=1)
-                #тут "наружная" вырезалка становится агрессивнее
-                #в режиме наизнанку мы пытаемся рисовать фон за персонажем, а не наоборот
-                final_mask = cv2.bitwise_not(eroded)
-            elif mode == "full":
+            if mode == "full":
                 if background is None:
                     raise ValueError("Для режима 'full' требуется передать фон (background) для определения размеров маски.")
                 # Создаем абсолютно белое полотно (255) по размерам ФОНА

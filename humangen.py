@@ -4,7 +4,6 @@ from sdxl_gen_core import CenzorGeneratorDPM
 
 
 class HealthyGen:
-
     def __init__(self):
         print(
             "--- ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ ИЗВЛЕЧЕНИЯ ЧЕЛОВЕЧЕСКИХ ОБРАЗОВ ---"
@@ -42,7 +41,6 @@ class HealthyGen:
             "digital artifacts, illustration, drawing, painting, unrealistic, cartoon, "
             "comic, deformed, poster, cars, flags, text"
         )
-
         print ("--- СИСТЕМА ЦЕНЗОР: ПОИСК В ФИЗИЧЕСКИХ БАЗАХ ПО ЗАПРОСУ ---")
         print (f"--- ЗАПРОС: {prompt_healthy} ---")
         # Пробрасываем seed в ядро
@@ -55,5 +53,3 @@ class HealthyGen:
             seed=seed,
             output_name=output_name,
         )
-        torch.mps.empty_cache()
-        print("✅ Очистка кэша MPS завершена. Память освобождена.")

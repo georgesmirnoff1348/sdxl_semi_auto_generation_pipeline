@@ -25,7 +25,7 @@ places = (
 
 prompt_city = (f"""
     architectural photography of a {random.choice(places)}, 1980s,
-    straight perspective, 
+    straight perspective
 """)
 
 negative_prompt_city = ("""
