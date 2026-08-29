@@ -7,6 +7,7 @@ from diffusers import DPMSolverMultistepScheduler
 from maskgen import generate_frame_mask
 import cv2
 import numpy as np
+import random
 
 class CenzorInpainter:
     def __init__(
@@ -47,6 +48,9 @@ class CenzorInpainter:
         # Оставляем ТОЛЬКО slicing — tiling на MPS ломает память (contiguous stride)
         self.pipe.vae.enable_slicing()
         self.pipe.vae.disable_tiling()
+        print(
+            "✅ [Inpainter] Подсистема дорисовывания успешно инициализирована.\n"
+        )
 
     def inpaint_human(self,
         background: Image.Image,
@@ -118,8 +122,8 @@ class CenzorInpainter:
         alpha_print: Image.Image,
         back_object: str = "simple background",
         negative_prompt: str = None,
-        inner_pad: int = 5,
-        strength: float = 0.8,
+        inner_pad: int = 20,
+        strength: float = 1.0,
         denoise_steps_coef: float = 1.0,
         guidance_scale: float = 7.5,
         seed: int = None,
@@ -144,17 +148,20 @@ class CenzorInpainter:
         mask_image = Image.fromarray(final_mask_np)
 
         # 4. Настройка генератора случайных чисел
-        generator = None
-        if seed is not None:
-            generator = torch.Generator(device=self.pipe.device).manual_seed(seed)
+        if seed is None:
+            seed = random.randint(0, 2147483647)
+            print(f"🎲 Используется SEED: {seed}")
+        else: print(f"Используется заранее заданный SEED: {seed}")
+
+        generator = torch.Generator(device="cpu").manual_seed(seed)
 
         # 5. Запуск инпейнтинга (SDXL Pipeline)
         base_steps = 20
         num_inference_steps = max(1, math.ceil(base_steps * denoise_steps_coef))
 
         prompt = f"Background photography of a {back_object}, 1980s, casual photo."
-        print(f"Используется промпт: {prompt}")
-
+        print("--- СИСТЕМА ЦЕНЗОР: ЗАПУСК ПОДСИСТЕМЫ ДОПОЛНЕНИЯ ДАННЫХ О МЕСТОПОЛОЖЕНИИ ЧЕЛОВЕЧЕСКОГО СУБЪЕКТА ---")
+        print(f"--- СИСТЕМА ЦЕНЗОР: ИСПОЛЬЗУЮТСЯ ДАННЫЕ О МЕСТЕ {prompt}")
         return self.pipe(
             prompt=prompt,
             negative_prompt=negative_prompt,

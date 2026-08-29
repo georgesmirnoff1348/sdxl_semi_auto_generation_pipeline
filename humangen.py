@@ -22,9 +22,7 @@ class HealthyGen:
         output_name: str,
         seed: int = None,
     ):
-        print(
-            "--- СИСТЕМА ЦЕНЗОР: ИЗВЛЕЧЕНИЕ ЛИЦЕВЫХ ДАННЫХ ИЗ БАЗ К.О.Н.Т.У.Р. ---"
-        )
+        print("--- СИСТЕМА ЦЕНЗОР: ИЗВЛЕЧЕНИЕ ЛИЦЕВЫХ ДАННЫХ ИЗ БАЗ К.О.Н.Т.У.Р. ---")
 
         prompt_healthy = (
             f"A {composition} of a {age} {nationality} {gender}, "
@@ -34,7 +32,7 @@ class HealthyGen:
 
         prompt2_healthy = (
             f"A {composition} of a {age} {nationality} {gender}, wearing {clothing}"
-            f"1980s soviet archival document portrait, neutral serious expression, "
+            f"1980s soviet archival photo, "
             f"soft studio lighting, sharp focus, analogue film grain, masterpiece photography"
         )
 
@@ -47,6 +45,8 @@ class HealthyGen:
             "comic, deformed, poster, cars, flags, text"
         )
 
+        print ("--- СИСТЕМА ЦЕНЗОР: ПОИСК В ФИЗИЧЕСКИХ БАЗАХ ПО ЗАПРОСУ ---")
+        print (f"--- ЗАПРОС: {prompt_healthy} ---")
         # Пробрасываем seed в ядро
         _, used_seed = self.normal_generator.generate(
             prompt=prompt_healthy,
