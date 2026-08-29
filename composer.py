@@ -119,6 +119,8 @@ class Composer:
             - edge: кольцевая маска (только шов)
             - background_primary: полная маска объекта + контекст фона
             - figure_primary: маска фона ВОКРУГ объекта (сам объект вырезан из маски)
+            - inside_out: предназначен для инвертированной маски, чтобы рисовать фон за персонажем
+            и скорее всего я его никогда не применю, потому что тут уже архитектура течет
             """
             if outer_pad is None:
                 outer_pad = max((self.mask_inflate // 5) * 4, 1)  
@@ -133,7 +135,12 @@ class Composer:
             kernel_inner = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (inner_pad * 2 + 1, inner_pad * 2 + 1))
             dilated = cv2.dilate(binary, kernel_outer, iterations=1)
             eroded = cv2.erode(binary, kernel_inner, iterations=1)
-            if mode == "full":
+            if mode == "inside_out":
+                eroded = cv2.erode(binary, kernel_outer, iterations=1)
+                #тут "наружная" вырезалка становится агрессивнее
+                #в режиме наизнанку мы пытаемся рисовать фон за персонажем, а не наоборот
+                final_mask = cv2.bitwise_not(eroded)
+            elif mode == "full":
                 if background is None:
                     raise ValueError("Для режима 'full' требуется передать фон (background) для определения размеров маски.")
                 # Создаем абсолютно белое полотно (255) по размерам ФОНА
@@ -148,7 +155,7 @@ class Composer:
                 #расширенная область минус суженная область = кольцо вокруг объекта
                 final_mask = cv2.subtract(dilated, eroded)
             else:
-                raise ValueError(f"Неизвестный режим: {mode}. Допустимые: 'full', 'edge', 'background_primary', 'figure_primary'")
+                raise ValueError(f"Неизвестный режим: {mode}. Допустимые: 'full', 'edge', 'background_primary', 'figure_primary', 'inside_out'")
 
             # Размытие краев для мягкой адаптации инпейнтера
             blurred = cv2.GaussianBlur(final_mask, (31, 31), 0)
@@ -216,8 +223,11 @@ class Composer:
                 collage=collage, 
                 mask=full_mask.convert("RGB")
             )
-        elif output_mode == "collage_only":
+        elif output_mode == "collage":
             return collage
+        elif output_mode == "mask":
+            return full_mask
+        
         else:
             raise ValueError(
                 f"Некорректный output_mode='{output_mode}'. "

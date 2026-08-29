@@ -5,6 +5,8 @@ from composer import Composer
 from PIL import Image
 from diffusers import DPMSolverMultistepScheduler
 from maskgen import generate_frame_mask
+import cv2
+import numpy as np
 
 class CenzorInpainter:
     def __init__(
@@ -109,3 +111,57 @@ class CenzorInpainter:
             ).images[0]
 
         return output
+
+    def inpaint_back(
+        self,
+        figure: Image.Image,
+        alpha_print: Image.Image,
+        back_object: str = "simple background",
+        negative_prompt: str = None,
+        inner_pad: int = 5,
+        strength: float = 0.8,
+        denoise_steps_coef: float = 1.0,
+        guidance_scale: float = 7.5,
+        seed: int = None,
+        ) -> Image.Image:
+
+        # 1. Извлекаем маску из alpha-канала или оттенков серого
+        if alpha_print.mode in ("RGBA", "LA"):
+            mask_np = np.array(alpha_print.split()[-1])
+        else:
+            mask_np = np.array(alpha_print.convert("L"))
+
+        # 2. Бинаризация и эрозия (сжимаем силуэт персонажа внутрь)
+        _, binary = cv2.threshold(mask_np, 128, 255, cv2.THRESH_BINARY)
+        kernel_size = inner_pad * 2 + 1
+        kernel_inner = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)
+        )
+        eroded = cv2.erode(binary, kernel_inner, iterations=1)
+
+        # 3. Инвертируем: белым (255) станет всё, кроме уменьшенной фигуры
+        final_mask_np = cv2.bitwise_not(eroded)
+        mask_image = Image.fromarray(final_mask_np)
+
+        # 4. Настройка генератора случайных чисел
+        generator = None
+        if seed is not None:
+            generator = torch.Generator(device=self.pipe.device).manual_seed(seed)
+
+        # 5. Запуск инпейнтинга (SDXL Pipeline)
+        base_steps = 20
+        num_inference_steps = max(1, math.ceil(base_steps * denoise_steps_coef))
+
+        prompt = f"Background photography of a {back_object}, 1980s, casual photo."
+        print(f"Используется промпт: {prompt}")
+
+        return self.pipe(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            image=figure.convert("RGB"),
+            mask_image=mask_image,
+            strength=strength,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            generator=generator,
+        ).images[0]

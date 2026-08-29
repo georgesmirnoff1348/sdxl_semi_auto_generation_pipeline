@@ -1,20 +1,27 @@
-#0 Генерация фона (будет отменено в итоговом пайпе)
+#1 Генерация персонажа
 #Подключение библиотек и создание имен, создание экземпляра генератора
 from pathlib import Path
 from PIL import Image
 from numberedfilesaver import get_next_available_filename
+from humangen import HealthyGen
 
-back_dir = Path("gen/backgrounds")
-back_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
-back_prefix = "back_"
+hgen = HealthyGen()
+comrades_dir = Path("gen/comrades")
+comrades_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
+comrade_filename = get_next_available_filename(directory=comrades_dir, prefix="comrade_")
 
-"""
-from sdxl_gen_core import CenzorGeneratorDPM
-citygen = CenzorGeneratorDPM()
+hgen.generate_healthy(age="young",
+                      gender="woman",
+                      nationality="russian",
+                      clothing="worker clothes",
+                      composition="half-body photo",
+                      output_name=comrades_dir / comrade_filename)
 
-backname = get_next_available_filename(directory= back_dir, prefix= back_prefix)
-"""
+#2 Дорисовка фона
 import random
+from cenzor_inpainter import CenzorInpainter
+inpainter = CenzorInpainter()
+
 places = (
     "quiet soviet street view",
     "soviet bus stop",
@@ -23,49 +30,28 @@ places = (
     "empty rusted soviet playground, simple metal swing",
     "soviet hospital entrance",
     "empty soviet courtyard with concrete fence",
-    "soviet boiler house with high chimney",
-    #"pedestrian alley between panel buildings",
+    "soviet boiler house",
+    "panel buildings",
     "deserted tram stops and tracks"
 )
 
-prompt_city = (f"""
-    architectural photography of a {random.choice(places)}, 1980s,
-    off-center composition, just background
-""")
-
-negative_prompt_city = ("""
-    centered composition, ground, winter, snow, distorted architecture, text, 
-    warped, destroyed, ruins, aerial view, top-down, low-angle, anime, 
-    illustration, painting, text, skyscrapers, high-rise
-""")
-
-"""
-citygen.generate(
-    prompt=prompt_city,
-    negative_prompt=negative_prompt_city,
-    output_name=str(back_dir / backname),
-    num_inference_steps=25,
-    guidance_scale=7.5
-)
-"""
-
-#1 Рисуем чела на фон инпейнтом
-from cenzor_inpainter import CenzorInpainter
-inpainter = CenzorInpainter()
-composition = "close-up" #random.choice(("close-up", "half-body"))
-
 inpainted_dir = Path("gen/inpaints")
 inpainted_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
-inphuman_filename = get_next_available_filename(directory=inpainted_dir, prefix="inphuman_")
-background_file = random.choice(list(back_dir.glob("*.png")))
+inpback_filename = get_next_available_filename(directory=inpainted_dir, prefix="inpback_")
 
-inpainter.inpaint_human(background=Image.open(background_file),
-                        composition="close-up",
-                        age="young", 
-                        gender="man",
-                        nationality="georgian", 
-                        clothing="worker suit",
-                        strength=0.8,
-                        denoise_steps_coef=1.0,
-                        guidance_scale=10.0
-                        ).save(inpainted_dir/inphuman_filename)
+comrade_number = Path(comrade_filename).stem.split("_")[-1]
+cut_dir = Path("gen/cuts")
+cut_dir.mkdir(parents=True, exist_ok=True) # Создаст папку, если ее нет
+from cutter import remove_background
+remove_background(
+    picture_path = comrades_dir / comrade_filename,
+    output_path=cut_dir / f"comr_noback_{comrade_number}.png",
+)
+#comrade_number = 1
+inpainter.inpaint_back(figure=Image.open(comrades_dir / comrade_filename),
+                    alpha_print=Image.open(cut_dir / f"comr_noback_{comrade_number}.png"),
+                    back_object = random.choice(places),
+                    strength=1.0,
+                    denoise_steps_coef=1.0,
+                    guidance_scale=6.0
+                    ).save(inpainted_dir/inpback_filename)
