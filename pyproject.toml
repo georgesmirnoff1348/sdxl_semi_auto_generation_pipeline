@@ -10,6 +10,7 @@ dependencies = [
 	"numpy",
 	"opencv-python",
 	"pillow",
+	"rembg>=2.0.81",
 	"safetensors",
 	"scikit-image>=0.26.0",
 	"torch",
