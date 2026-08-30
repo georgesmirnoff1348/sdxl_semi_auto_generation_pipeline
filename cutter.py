@@ -1,11 +1,13 @@
 from PIL import Image
-from rembg import remove, new_session
+from rembg import new_session, remove
 
-# Инициализируем сессию с моделью isnet-general-use (основа для RMBG) 
-# или явно briaai (в свежих версиях rembg доступен и bria-rmbg)
+# 1. Задаем явно CUDA провайдер
+# 2. Инициализируем сессию ЕДИНОЖДЫ при импорте модуля
+# (birefnet весит всего ~170MB, она не забьет RAM)
+providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+session = new_session("birefnet-general", providers=providers)
+
 def remove_background(picture_path: str, output_path: str):
-    session = new_session("birefnet-general")
-
-    input_image = Image.open(picture_path)
-    output_image = remove(input_image, session=session)
-    output_image.save(output_path)
+    with Image.open(picture_path) as input_image:
+        output_image = remove(input_image, session=session)
+        output_image.save(output_path)
