@@ -4,6 +4,7 @@ import random
 from diffusers import StableDiffusionXLPipeline
 from diffusers import DPMSolverMultistepScheduler
 from pathlib import Path
+import gc
 
 model0 = "stabilityai/stable-diffusion-xl-base-1.0"
 model1 = "SG161222/RealVisXL_V4.0" #реалистичные фото
@@ -50,9 +51,6 @@ class CenzorGeneratorDPM:
         print("Используется устройство: ", self.device)
         self.pipeline.enable_attention_slicing()
 
-
-
-
     def generate(
             self, 
             prompt: str, 
@@ -92,4 +90,6 @@ class CenzorGeneratorDPM:
         elif self.device == "mps":
             torch.mps.empty_cache()
         print("✅ Очистка кэша завершена. Память освобождена.")
+        gc.collect()
+        print("✅ Очистка мусора завершена. GC отработал.")
         return image, seed
