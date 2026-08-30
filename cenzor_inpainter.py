@@ -13,9 +13,8 @@ class CenzorInpainter:
     def __init__(
         self, 
         model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        device: str = "mps"
     ):
-        self.device = device
+        self.device = "mps" if torch.mps.is_available() else "cuda"
         self._default_composer = Composer(verbose=False)
 
         self.dtype = torch.float16
