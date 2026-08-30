@@ -18,8 +18,12 @@ class CenzorGeneratorDPM:
             self.device = "mps"
         else: 
             self.device = "cpu"
-        
-        model_id = model1
+
+        if crooked:
+            model_id = model0
+        else:
+            model_id = model1
+
         # Загрузка пайплайна
         self.pipeline = StableDiffusionXLPipeline.from_pretrained(
             model_id,

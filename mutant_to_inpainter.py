@@ -21,25 +21,24 @@ gender = random.choice(genders)
 
 # CLIP ViT-L: Локализуем аномалию СТРОГО на коже лица
 prompt_o41 = (
-    f"color portrait analog horror photo of a {age} {gender}, "
-    f"skin covered with thick grey concrete crust, alien infection, "
-    f"porous grey cement texture on cheeks and forehead, "
-    f"wide unblinking staring eyes, shocked expression"
-)
+   f"cursed creepy photo of an affected {age} {gender}, "
+    f"face skin completely covered in thick crusty grey cement layer, "
+    f"distorted grin, unnaturally stretched mouth, unnaturally big eyes, uncanny valley")
+
 # OpenCLIP ViT-bigG: Стилизация под архивную съемку
 prompt2_o41 = (
-    f"1980s analogue horror photo of a {age} {gender}, fear, alien infection"
+    f"1980s analogue horror photo of a {age} {gender}, fear, alien strain infection"
     f"disturbing medical archive photograph, skin covered with concrete patches"
 )
 # Негативный промпт (с правильными запятыми и пробелами!)
 negative_o41 = (
-    "mushroom cap, hat, helmet, 3d render, sculpture, statue, "
-    "normal skin, smooth skin, beauty, smiling, cute, illustration, "
+    "tongue, mushroom cap, hat, helmet, 3d render, sculpture, statue, nudity, naked"
+    "normal skin, smooth skin, beauty, cute, illustration, "
     "monochrome, black and white, glossy, extra limbs"
 )
 
 mutagen.generate_mutant(prompt_o41=prompt_o41,
-                        prompt2_o41=prompt2_o41,
+                        #prompt2_o41=prompt2_o41,
                         negative_o41=negative_o41,
                         output_name=mutants_dir / mutant_filename,
                         num_inference_steps=20)

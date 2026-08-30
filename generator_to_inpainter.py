@@ -28,11 +28,11 @@ inpainter = CenzorInpainter()
 
 places = (
     "quiet russian street",
-    #"soviet factory",
-    #"soviet concrete fence",
-    #"soviet industrial district",
-    #"panel buildings",
-    #"deserted train station"
+    "soviet factory",
+    "soviet concrete fence",
+    "soviet industrial district",
+    "panel buildings",
+    "deserted train station"
 )
 
 inpainted_dir = Path("gen/inpaints")

@@ -10,8 +10,8 @@ class MutaGen:
 
     def generate_mutant(self,
                     prompt_o41: str,
-                    prompt2_o41: str,
-                    negative_o41: str,
+                    prompt2_o41: str = None,
+                    negative_o41: str = None,
                     output_name: str | Path = "output_mut.png",
                     num_inference_steps: int = 20,
                     guidance_scale: float = 5.0,
