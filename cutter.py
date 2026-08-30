@@ -5,7 +5,7 @@ from rembg import new_session, remove
 # 2. Инициализируем сессию ЕДИНОЖДЫ при импорте модуля
 # (birefnet весит всего ~170MB, она не забьет RAM)
 providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-session = new_session("birefnet-general", providers=providers)
+session = new_session("u2net", providers=providers)
 
 def remove_background(picture_path: str, output_path: str):
     with Image.open(picture_path) as input_image:
