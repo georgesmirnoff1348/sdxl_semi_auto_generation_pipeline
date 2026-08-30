@@ -14,9 +14,8 @@ class CenzorInpainter:
         self, 
         model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
     ):
-        
-        print(f"[Inpainter] Перевод моделей на {self.device}...")
         self.device = "mps" if torch.mps.is_available() else "cuda"
+        print(f"[Inpainter] Перевод моделей на {self.device}...")
         self.pipe.to(self.device)
         
         self._default_composer = Composer(verbose=False)
