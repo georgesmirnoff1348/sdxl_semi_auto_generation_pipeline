@@ -14,7 +14,11 @@ class CenzorInpainter:
         self, 
         model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
     ):
+        
+        print(f"[Inpainter] Перевод моделей на {self.device}...")
         self.device = "mps" if torch.mps.is_available() else "cuda"
+        self.pipe.to(self.device)
+        
         self._default_composer = Composer(verbose=False)
 
         self.dtype = torch.float16
@@ -39,10 +43,6 @@ class CenzorInpainter:
                 use_karras_sigmas = True #включаем сигмы Карраса для ускорения генерации 
                 )
         self.pipe.scheduler.algorithm_type = "dpmsolver++"
-        
-
-        print(f"[Inpainter] Перевод моделей на {device}...")
-        self.pipe.to(device)
 
         # Оставляем ТОЛЬКО slicing — tiling на MPS ломает память (contiguous stride)
         self.pipe.vae.enable_slicing()
@@ -74,7 +74,9 @@ class CenzorInpainter:
 
         generator = None
         if seed is not None:
-            generator = torch.Generator(device="cpu").manual_seed(seed)
+            # На MPS генератор Diffusers должен быть на CPU, на CUDA можно явно указать CUDA
+            gen_device = "cpu" if self.device == "mps" else self.device
+            generator = torch.Generator(device=gen_device).manual_seed(seed)    
 
         if self.device == "mps":
             torch.mps.empty_cache()
