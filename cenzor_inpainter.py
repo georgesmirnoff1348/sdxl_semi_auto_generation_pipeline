@@ -16,10 +16,8 @@ class CenzorInpainter:
     ):
         self.device = "mps" if torch.mps.is_available() else "cuda"
         print(f"[Inpainter] Перевод моделей на {self.device}...")
-        self.pipe.to(self.device)
         
         self._default_composer = Composer(verbose=False)
-
         self.dtype = torch.float16
 
         print("[Inpainter] Загрузка VAE...")
@@ -37,6 +35,7 @@ class CenzorInpainter:
             use_safetensors=True,
             variant="fp16" if self.dtype == torch.float16 else None
         )
+        self.pipe.to(self.device)
         self.pipe.scheduler = DPMSolverMultistepScheduler.from_config( 
                 self.pipe.scheduler.config,
                 use_karras_sigmas = True #включаем сигмы Карраса для ускорения генерации 
