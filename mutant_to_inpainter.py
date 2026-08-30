@@ -14,29 +14,39 @@ print ("--- СИСТЕМА ЦЕНЗОР: ВЫГРУЗКА В ЭЛЕКТРОНН�
 print (f"--- СИСТЕМА ЦЕНЗОР: ВЫБРАНА ДИРЕКТОРИЯ {mutants_dir} ---")
 print (f"--- СИСТЕМА ЦЕНЗОР: ИМЯ ФАЙЛА {mutant_filename} ---")
 
-ages = ("young", "middle-aged", "elderly")
+ages = ("young", "adult", "old")
 genders = ("man", "woman")
 age = random.choice(ages)
 gender = random.choice(genders)
 
+# CLIP ViT-L: Локализуем аномалию СТРОГО на коже лица
 prompt_o41 = (
-    f"color portrait of a {age} {gender}, infected by cosmic strain"
-    f"face skin with concrete texture"
+    f"color portrait analog horror photo of a {age} {gender}, "
+    f"skin covered with thick grey concrete crust, alien infection, "
+    f"porous grey cement texture on cheeks and forehead, "
+    f"wide unblinking staring eyes, shocked expression"
 )
-prompt2_o41 = f"uncanny photograph of an infected {age} {gender} with concrete skin"
+# OpenCLIP ViT-bigG: Стилизация под архивную съемку
+prompt2_o41 = (
+    f"1980s analogue horror photo of a {age} {gender}, fear, alien infection"
+    f"disturbing medical archive photograph, skin covered with concrete patches"
+)
+# Негативный промпт (с правильными запятыми и пробелами!)
 negative_o41 = (
-    "normal looks, smooth skin, monochrome, zombie, beauty"
-    "3d render, illustration, glossy, colorful, extra arms"
+    "mushroom cap, hat, helmet, 3d render, sculpture, statue, "
+    "normal skin, smooth skin, beauty, smiling, cute, illustration, "
+    "monochrome, black and white, glossy, extra limbs"
 )
 
-mutagen.generate_mutant(prompt_о41=prompt_o41,
+mutagen.generate_mutant(prompt_o41=prompt_o41,
                         prompt2_o41=prompt2_o41,
                         negative_o41=negative_o41,
                         output_name=mutants_dir / mutant_filename,
                         num_inference_steps=20)
 print(f"--- СИСTЕМА ЦЕНЗОР: ПРОИЗВЕДЕНО ИЗВЛЕЧЕНИЕ В ЭЛЕКТРОННУЮ БАЗУ ПОД ИМЕНЕМ {mutants_dir / mutant_filename}")
 
-#2 Дорисовка фона
+#2 Дорисовка фона -- не нужна, на самом деле, поэтому комментируем полностью
+"""
 from cenzor_inpainter import CenzorInpainter
 inpainter = CenzorInpainter()
 
@@ -58,9 +68,11 @@ print("--- СИСТЕМА ЦЕНЗОР: №№:%:,% ЛИЦА ПРОИЗВЕДЕ�
 
 inpainter.inpaint_back(figure=Image.open(mutants_dir / mutant_filename),
                     alpha_print=Image.open(cut_dir / f"mut_noback_{mutant_number}.png"),
-                    back_object = "indoor medical room, painted wall background, cracking paint",
+                    back_object = "medical room, painted wall background, cracking paint",
+                    negative_prompt= "people, illustration, human, outdoor", 
                     inner_pad=40,
                     strength=1.0,
                     denoise_steps_coef=1.0,
                     guidance_scale=7.5
                     ).save(inpainted_dir/inpback_filename)
+"""
