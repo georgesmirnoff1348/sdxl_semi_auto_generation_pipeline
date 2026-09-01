@@ -20,6 +20,7 @@ class HealthyGen:
         composition: str,
         output_name: str,
         seed: int = None,
+        num_inference_steps: int = 20,
     ):
         print("--- СИСТЕМА ЦЕНЗОР: ИЗВЛЕЧЕНИЕ ЛИЦЕВЫХ ДАННЫХ ИЗ БАЗ К.О.Н.Т.У.Р. ---")
 
@@ -49,7 +50,7 @@ class HealthyGen:
             prompt=prompt_healthy,
             prompt_2=prompt2_healthy,
             negative_prompt=negative_healthy,
-            num_inference_steps=20,
+            num_inference_steps=num_inference_steps,
             guidance_scale=7.5,
             seed=seed,
             output_name=output_name,
