@@ -26,21 +26,15 @@ prompt_o41 = (
     f"petrified skin texture with deep dry fissures and crumbling cement pores, "
     f"distorted grin, unnaturally stretched mouth, unnaturally big eyes, uncanny valley"
 )
-# OpenCLIP ViT-bigG: Стилизация под архивную съемку
-prompt2_o41 = (
-    f"1980s analogue horror photo of a {age} {gender}, "
-    f"disturbing medical archive photograph, "
-    f"calcified grey stone face, calcification of human tissue, matte raw concrete material"
-)
+
 # Негативный промпт (с правильными запятыми и пробелами!)
 negative_o41 = (
     "dirt, mud, soot, wet, glossy, makeup, paint, liquid, "  # блокируем грязь и мази
-    "tongue, mushroom cap, hat, helmet, 3d render, sculpture, statue, nudity, naked, "
+    "helmet, 3d render, sculpture, statue, nudity, naked, plastic, "
     "normal skin, smooth skin, beauty, cute, illustration, "
-    "monochrome, black and white, extra limbs"
+    "monochrome, black and white, extra limbs, surrounded by walls"
 )
 mutagen.generate_mutant(prompt_o41=prompt_o41,
-                        #prompt2_o41=prompt2_o41,
                         negative_o41=negative_o41,
                         output_name=mutants_dir / mutant_filename,
                         num_inference_steps=20)
