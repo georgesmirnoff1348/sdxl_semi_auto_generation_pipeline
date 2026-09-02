@@ -20,20 +20,20 @@ age = random.choice(ages)
 gender = random.choice(genders)
 
 # CLIP ViT-L: Локализуем аномалию СТРОГО на коже лица
-prompt_o41 = (
-    f"cursed creepy photo of an affected {age} {gender}, "
-    f"face skin made of rough porous grey concrete, "  # skin made of вместо covered in
-    f"petrified skin texture with deep dry fissures and crumbling cement pores, "
-    f"distorted grin, unnaturally stretched mouth, unnaturally big eyes, uncanny valley"
-)
 
-# Негативный промпт (с правильными запятыми и пробелами!)
-negative_o41 = (
-    "dirt, mud, soot, wet, glossy, makeup, paint, liquid, "  # блокируем грязь и мази
-    "helmet, 3d render, sculpture, statue, nudity, naked, plastic, "
-    "normal skin, smooth skin, beauty, cute, illustration, "
-    "monochrome, black and white, extra limbs, surrounded by walls"
+prompt_o41 = (
+    f"1980s portrait photo of a {age} {gender}, "
+    f"thick rough grey concrete crust growing on face skin, "
+    f"cracked grey cement scaling on face, "
+    f"creepy gaze, flash photography, concrete background"
 )
+negative_o41 = (
+    "statue, bust, sculpture, outdoor, 3d render, CGI, mannequin, "
+    "peeling paint, makeup, paper, plaster, beauty, close-up, "
+    "drawn, cartoon, illustration, monochrome, dark background, "
+    "war paint, stripes, hood, arch, frame, border, framing, vignette"
+)     
+
 mutagen.generate_mutant(prompt_o41=prompt_o41,
                         negative_o41=negative_o41,
                         output_name=mutants_dir / mutant_filename,
