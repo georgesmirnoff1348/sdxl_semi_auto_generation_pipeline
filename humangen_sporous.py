@@ -16,6 +16,7 @@ class SporeGen:
         output_name: str = None,
         seed: int = None,
         num_inference_steps: int = 20,
+        guidance_scale: float = 5.0,
     ):
         print("--- СИСТЕМА ЦЕНЗОР: ИЗВЛЕЧЕНИЕ АНОМАЛЬНЫХ ЛИЦЕВЫХ ДАННЫХ ИЗ БАЗ К.О.Н.Т.У.Р. ---")
 
@@ -32,7 +33,7 @@ class SporeGen:
             prompt_2=prompt2,
             negative_prompt=negative_prompt,
             num_inference_steps=num_inference_steps,
-            guidance_scale=5.0,
+            guidance_scale=guidance_scale,
             seed=seed,
             output_name=output_name,
         )
