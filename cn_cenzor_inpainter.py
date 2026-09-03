@@ -1,5 +1,5 @@
 import torch
-from diffusers import AutoencoderKL, StableDiffusionXLInpaintPipeline
+from diffusers import AutoencoderKL, StableDiffusionXLControlNetInpaintPipeline, ControlNetModel
 from PIL import Image
 from diffusers import DPMSolverMultistepScheduler
 import math
@@ -7,10 +7,12 @@ import cv2
 import numpy as np
 import random
 
-class CenzorInpainter:
+class ControlNetCenzorInpainter:
     def __init__(
-        self, 
-        model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
+        self,
+        base_model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
+        controlnet_model_id: str = "diffusers/controlnet-depth-sdxl-1.0",
+        vae_model_id: str = "madebyollin/sdxl-vae-fp16-fix",
     ):
         self.device = "mps" if torch.mps.is_available() else "cuda"
         print(f"--- СИСТЕМА ЦЕНЗОР: ПЕРЕХОД НА ЭВМ {self.device.upper()}...")
@@ -19,14 +21,23 @@ class CenzorInpainter:
 
         print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА ВАРИАЦИОННОГО АВТОКОДЕРА... ---")
         vae = AutoencoderKL.from_pretrained(
-            "madebyollin/sdxl-vae-fp16-fix", 
+            vae_model_id, 
             torch_dtype=self.dtype,
             use_safetensors=True
         )
 
-        print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА ОСНОВНОЙ МОДЕЛИ {model_id.upper()}... ---")
-        self.pipe = StableDiffusionXLInpaintPipeline.from_pretrained(
-            model_id,
+        print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА КОНТРОЛЬНОЙ СЕТИ {controlnet_model_id.upper()}... ---")
+        controlnet = ControlNetModel.from_pretrained(
+            controlnet_model_id,
+            torch_dtype=self.dtype,
+            use_safetensors=True,
+            variant="fp16" if self.dtype == torch.float16 else None
+        )
+
+        print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА ОСНОВНОЙ МОДЕЛИ {base_model_id.upper()} С КОНТРОЛИРУЮЩИМИ СЕТЯМИ ---")
+        self.pipe = StableDiffusionXLControlNetInpaintPipeline.from_pretrained(
+            base_model_id,
+            controlnet=controlnet,
             vae=vae,
             torch_dtype=self.dtype,
             use_safetensors=True,
@@ -44,18 +55,19 @@ class CenzorInpainter:
         self.pipe.vae.disable_tiling()
         print(f"--- СИСТЕМА ЦЕНЗОР: ИНИЦИАЛИЗАЦИЯ КОНВЕЙЕРА ДОРИСОВКИ НА {self.device.upper()} ЗАВЕРШЕНА ---")
 
-    def inpaint_back(
+    def inpaint_spores(
         self,
-        figure: Image.Image,
-        alpha_print: Image.Image,
-        back_object: str = "simple background",
-        negative_prompt: str = None,
-        inner_pad: int = 20,
-        strength: float = 1.0,
-        denoise_steps_coef: float = 1.0,
+        image: Image.Image,               # Исходник с фоном
+        alpha_print: Image.Image,          # Альфа-маска вырезанного человека
+        depth_map: Image.Image,           # Карта глубин
+        prompt: str,
+        negative_prompt: str = "blurry, smooth skin, low quality, distortion",
+        strength: float = 0.8,
+        controlnet_scale: float = 0.55,
         guidance_scale: float = 7.5,
+        denoise_steps_coef: float = 1.0,
         seed: int = None,
-        ) -> Image.Image:
+    ) -> Image.Image:
 
         # 1. Извлекаем маску из alpha-канала или оттенков серого
         if alpha_print.mode in ("RGBA", "LA"):
@@ -63,39 +75,30 @@ class CenzorInpainter:
         else:
             mask_np = np.array(alpha_print.convert("L"))
 
-        # 2. Бинаризация и эрозия (сжимаем силуэт персонажа внутрь)
-        _, binary = cv2.threshold(mask_np, 128, 255, cv2.THRESH_BINARY)
-        kernel_size = inner_pad * 2 + 1
-        kernel_inner = cv2.getStructuringElement(
-            cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)
-        )
-        eroded = cv2.erode(binary, kernel_inner, iterations=1)
+        # 2. Размытие маски для сглаживания краев
+        mask_np = cv2.GaussianBlur(mask_np, (15, 15), 0)
+        mask_image = Image.fromarray(mask_np)
 
-        # 3. Инвертируем: белым (255) станет всё, кроме уменьшенной фигуры
-        final_mask_np = cv2.bitwise_not(eroded)
-        mask_image = Image.fromarray(final_mask_np)
-
-        # 4. Настройка генератора случайных чисел
+        # 4. Seed на CPU (фиксит баг генератора MPS)
         if seed is None:
             seed = random.randint(0, 2147483647)
-            print(f"🎲 Используется SEED: {seed}")
-        else: print(f"Используется заранее заданный SEED: {seed}")
-
         generator = torch.Generator(device="cpu").manual_seed(seed)
 
         # 5. Запуск инпейнтинга (SDXL Pipeline)
         base_steps = 20
         num_inference_steps = max(1, math.ceil(base_steps * denoise_steps_coef))
 
-        prompt = f"Background photography of a {back_object}, 1980s, casual photo."
         print(f"--- СИСТЕМА ЦЕНЗОР: ЗАПУСК ПОДСИСТЕМЫ ДОПОЛНЕНИЯ ДАННЫХ О МЕСТОПОЛОЖЕНИИ ЧЕЛОВЕЧЕСКОГО СУБЪЕКТА ---")
-        print(f"--- СИСТЕМА ЦЕНЗОР: ИСПОЛЬЗУЮТСЯ ДАННЫЕ О МЕСТЕ {prompt}")
+        print(f"--- СИСТЕМА ЦЕНЗОР: ИСПОЛЬЗУЮТСЯ ДАННЫЕ: {prompt.upper()} ---")
+
         return self.pipe(
             prompt=prompt,
             negative_prompt=negative_prompt,
-            image=figure.convert("RGB"),
+            image=image.convert("RGB"),
             mask_image=mask_image,
+            control_image=depth_map.convert("RGB"),
             strength=strength,
+            controlnet_conditioning_scale=controlnet_scale,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generator,

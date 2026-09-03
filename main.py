@@ -1,20 +1,25 @@
-from humangen import HealthyGen
+from PIL import Image
+
+
 from cutter import remove_background
-import time
-import torch
+from controlnetmaps import FeatureDetector
+from cn_cenzor_inpainter import ControlNetCenzorInpainter
 
-healthy_gen = HealthyGen()
-for i in range(0):
-    print("--- СИСТЕМА ЦЕНЗОР: СТАРТ ИЗВЛЕЧЕНИЯ ЛИЦА ---")
-    healthy_gen.generate_healthy(age="middle-aged",
-                                gender="man",
-                                nationality='russian',
-                                clothing='worker clothes',
-                                output_num=i)
+image = Image.open("comrade_119.png")
+remove_background(picture_path="comrade_119.png", output_path="comrade_119_nobg.png")
+image_nobg = Image.open("comrade_119_nobg.png")
+fd = FeatureDetector()
+depth_map = fd.get_depth_map(image_nobg, inject_details=True)
 
-    remove_background(picture_path=f"comrade_№{i}.png",
-                    output_path=f"comrade_№{i}.png")
-    torch.mps.empty_cache()
-    gc.collect()
-    print ("⏳ Пауза 30 секунд для охлаждения...")
-    time.sleep(30)
+cenzor_inpainter = ControlNetCenzorInpainter()
+result = cenzor_inpainter.inpaint_spores(
+    image=image,
+    alpha_print=image_nobg,
+    depth_map=depth_map,
+    prompt="concrete face",
+    negative_prompt="blurry, smooth skin, low quality",
+    strength=0.5,
+    controlnet_scale=0.75,
+    guidance_scale=5.5,
+    denoise_steps_coef=1.0,
+).save("result.png")
