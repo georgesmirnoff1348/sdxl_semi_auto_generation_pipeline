@@ -1,10 +1,10 @@
-import math
 import torch
 from diffusers import AutoencoderKL, StableDiffusionXLInpaintPipeline
 from composer import Composer
 from PIL import Image
 from diffusers import DPMSolverMultistepScheduler
 from maskgen import generate_frame_mask
+import math
 import cv2
 import numpy as np
 import random
@@ -173,3 +173,60 @@ class CenzorInpainter:
             guidance_scale=guidance_scale,
             generator=generator,
         ).images[0]
+    def inpaint_spore(
+            self,
+            figure: Image.Image,
+            alpha_print: Image.Image,
+            desease: str = "grey patches on skin",
+            negative_prompt: str = "clay, mud, dirt, skin paint, makeup",
+            inner_pad: int = 10,
+            strength: float = 0.4,
+            denoise_steps_coef: float = 1.0,
+            guidance_scale: float = 7.5,
+            seed: int = None,
+            ) -> Image.Image:
+
+            # 1. Извлекаем маску из alpha-канала или оттенков серого
+            if alpha_print.mode in ("RGBA", "LA"):
+                mask_np = np.array(alpha_print.split()[-1])
+            else:
+                mask_np = np.array(alpha_print.convert("L"))
+    
+            # 2. Бинаризация и эрозия (сжимаем силуэт персонажа внутрь)
+            _, binary = cv2.threshold(mask_np, 128, 255, cv2.THRESH_BINARY)
+            kernel_size = inner_pad * 2 + 1
+            kernel_inner = cv2.getStructuringElement(
+                cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)
+            )
+            dilated = cv2.dilate(binary, kernel_inner, iterations=1)
+    
+            #final_mask_np = cv2.bitwise_not(dilated)
+            mask_blur = cv2.GaussianBlur(dilated, (91, 91), 0)
+            mask_image = Image.fromarray(mask_blur)
+
+    
+            # 4. Настройка генератора случайных чисел
+            if seed is None:
+                seed = random.randint(0, 2147483647)
+                print(f"🎲 Используется SEED: {seed}")
+            else: print(f"Используется заранее заданный SEED: {seed}")
+    
+            generator = torch.Generator(device="cpu").manual_seed(seed)
+    
+            # 5. Запуск инпейнтинга (SDXL Pipeline)
+            base_steps = 20
+            num_inference_steps = max(1, math.ceil(base_steps * denoise_steps_coef))
+    
+            prompt = f"{desease}, 1980s, casual photo."
+            print("--- СИСТЕМА ЦЕНЗОР: ЗАПУСК ПОДСИСТЕМЫ ДОПОЛНЕНИЯ ДАННЫХ О ПРОЯВЛЕНИИ НАЧАЛЬНОГО СПОРОВОГО СИНДРОМА ШТАММА 314 ---")
+            print(f"--- СИСТЕМА ЦЕНЗОР: ИСПОЛЬЗУЮТСЯ ДАННЫЕ О СПОРОВОМ СИНДРОМЕ: {prompt}")
+            return self.pipe(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                image=figure.convert("RGB"),
+                mask_image=mask_image,
+                strength=strength,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                generator=generator,
+            ).images[0]
