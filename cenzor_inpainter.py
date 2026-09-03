@@ -177,7 +177,7 @@ class CenzorInpainter:
             self,
             figure: Image.Image,
             alpha_print: Image.Image,
-            desease: str = "grey patches on skin",
+            prompt: str = "concrete skin, 1980s, casual photo",
             negative_prompt: str = "clay, mud, dirt, skin paint, makeup",
             inner_pad: int = 10,
             strength: float = 0.4,
@@ -201,7 +201,7 @@ class CenzorInpainter:
             dilated = cv2.dilate(binary, kernel_inner, iterations=1)
     
             #final_mask_np = cv2.bitwise_not(dilated)
-            mask_blur = cv2.GaussianBlur(dilated, (91, 91), 0)
+            mask_blur = cv2.GaussianBlur(dilated, (51, 51), 0)
             mask_image = Image.fromarray(mask_blur)
 
     
@@ -217,7 +217,6 @@ class CenzorInpainter:
             base_steps = 20
             num_inference_steps = max(1, math.ceil(base_steps * denoise_steps_coef))
     
-            prompt = f"{desease}, 1980s, casual photo."
             print("--- СИСТЕМА ЦЕНЗОР: ЗАПУСК ПОДСИСТЕМЫ ДОПОЛНЕНИЯ ДАННЫХ О ПРОЯВЛЕНИИ НАЧАЛЬНОГО СПОРОВОГО СИНДРОМА ШТАММА 314 ---")
             print(f"--- СИСТЕМА ЦЕНЗОР: ИСПОЛЬЗУЮТСЯ ДАННЫЕ О СПОРОВОМ СИНДРОМЕ: {prompt}")
             return self.pipe(
