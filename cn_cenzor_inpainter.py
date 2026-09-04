@@ -11,7 +11,7 @@ class ControlNetCenzorInpainter:
     def __init__(
         self,
         base_model_id: str = "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        controlnet_model_id: str = "diffusers/controlnet-depth-sdxl-1.0",
+        #controlnet_model_id: str = "xinsir/controlnet-tile-sdxl-1.0",
         vae_model_id: str = "madebyollin/sdxl-vae-fp16-fix",
     ):
         self.device = "mps" if torch.mps.is_available() else "cuda"
@@ -26,12 +26,11 @@ class ControlNetCenzorInpainter:
             use_safetensors=True
         )
 
-        print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА КОНТРОЛЬНОЙ СЕТИ {controlnet_model_id.upper()}... ---")
+        print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА КОНТРОЛЬНОЙ СЕТИ {"xinsir/controlnet-canny-sdxl-1.0".upper()}... ---")
         controlnet = ControlNetModel.from_pretrained(
-            controlnet_model_id,
+            "xinsir/controlnet-canny-sdxl-1.0",
             torch_dtype=self.dtype,
-            use_safetensors=True,
-            variant="fp16" if self.dtype == torch.float16 else None
+            use_safetensors=True
         )
 
         print(f"--- СИСТЕМА ЦЕНЗОР: ЗАГРУЗКА ОСНОВНОЙ МОДЕЛИ {base_model_id.upper()} С КОНТРОЛИРУЮЩИМИ СЕТЯМИ ---")
@@ -59,11 +58,12 @@ class ControlNetCenzorInpainter:
         self,
         image: Image.Image,               # Исходник с фоном
         alpha_print: Image.Image,          # Альфа-маска вырезанного человека
-        depth_map: Image.Image,           # Карта глубин
+        control_image: Image.Image,        # Контрольное изображение
         prompt: str,
         negative_prompt: str = "blurry, smooth skin, low quality, distortion",
         strength: float = 0.8,
         controlnet_scale: float = 0.55,
+        control_guidance_end: float = 0.45,
         guidance_scale: float = 7.5,
         denoise_steps_coef: float = 1.0,
         seed: int = None,
@@ -96,9 +96,10 @@ class ControlNetCenzorInpainter:
             negative_prompt=negative_prompt,
             image=image.convert("RGB"),
             mask_image=mask_image,
-            control_image=depth_map.convert("RGB"),
+            control_image=control_image,
             strength=strength,
             controlnet_conditioning_scale=controlnet_scale,
+            control_guidance_end=control_guidance_end,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generator,

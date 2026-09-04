@@ -1,25 +1,21 @@
-from PIL import Image
+from humangen_sporous import SporeGen
 
+hgs = SporeGen()
 
-from cutter import remove_background
-from controlnetmaps import FeatureDetector
-from cn_cenzor_inpainter import ControlNetCenzorInpainter
+prompt = ("photograph of a mutated soviet person with gigantic, unnaturally bulging eyes, "
+    "hyper-detailed bulging pale green eyeballs, heavy wrinkles, "
+    "cracked stone-like skin texture, patchy lichen and grime on the face, "
+    "vintage tintype photograph style, "
+    "eerie atmosphere, 1980s aesthetic, photorealistic")
 
-image = Image.open("comrade_119.png")
-remove_background(picture_path="comrade_119.png", output_path="comrade_119_nobg.png")
-image_nobg = Image.open("comrade_119_nobg.png")
-fd = FeatureDetector()
-depth_map = fd.get_depth_map(image_nobg, inject_details=True)
+#prompt = "vintage horror portrait, giant bulging eyes, cracked dry skin, 1980s photo, film grain"
+negative_prompt = ("green, smooth skin, beauty, clean, makeup, 3d render, anime, plastic, skeleton, "
+            "blurry, illustration, drawing, cartoon, green, frame")
 
-cenzor_inpainter = ControlNetCenzorInpainter()
-result = cenzor_inpainter.inpaint_spores(
-    image=image,
-    alpha_print=image_nobg,
-    depth_map=depth_map,
-    prompt="concrete face",
-    negative_prompt="blurry, smooth skin, low quality",
-    strength=0.5,
-    controlnet_scale=0.75,
-    guidance_scale=5.5,
-    denoise_steps_coef=1.0,
-).save("result.png")
+hgs.generate_sporous(
+    prompt=prompt,
+    negative_prompt=negative_prompt,
+    output_name="sporous_output.png",
+    num_inference_steps=20,
+    guidance_scale=5.0
+)
