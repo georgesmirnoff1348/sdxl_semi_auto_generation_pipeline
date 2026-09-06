@@ -94,3 +94,4 @@ class OrdinaryGen(FactorDiffusor):
 
     def __exit__(self):
         self.unload()
+
