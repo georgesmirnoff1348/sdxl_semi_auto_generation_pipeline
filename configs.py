@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Optional, Any, Dict
 from collections.abc import Mapping
 import torch
@@ -68,14 +68,9 @@ class FactorPrompts(Mapping):
             prompt_2 = "",
             negative_prompt_2 = ""
         )
+    
     def _as_dict(self) -> Dict[str, Any]:
-            d = {
-                "prompt": self.prompt,
-                "prompt_2": self.prompt_2,
-                "negative_prompt": self.negative_prompt,
-                "negative_prompt_2": self.negative_prompt_2,
-            }
-            return d
+        return {k: v for k, v in asdict(self).items() if v is not None}
 
     def __getitem__(self, key):
         return self._as_dict()[key]

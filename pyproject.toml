@@ -8,7 +8,7 @@ dependencies = [
 	"accelerate",
 	"diffusers",
 	"numpy",
-	"opencv-python",
+	"opencv-python>=5.0.0.93",
 	"pillow",
 	"rembg>=2.0.81",
 	"safetensors",

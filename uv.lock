@@ -43,7 +43,7 @@ requires-dist = [
     { name = "accelerate" },
     { name = "diffusers" },
     { name = "numpy" },
-    { name = "opencv-python" },
+    { name = "opencv-python", specifier = ">=5.0.0.93" },
     { name = "pillow" },
     { name = "rembg", specifier = ">=2.0.81" },
     { name = "safetensors" },

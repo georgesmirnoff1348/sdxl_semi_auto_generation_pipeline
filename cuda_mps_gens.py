@@ -1,6 +1,7 @@
 from diffusors_core import FactorDiffusor, FactorInpainter, factortimeinference
 import torch
 from diffusers import (StableDiffusionXLPipeline, 
+                       StableDiffusionXLControlNetPipeline,
                         DPMSolverMultistepScheduler, 
                         StableDiffusionXLInpaintPipeline,
                         AutoencoderKL,
@@ -59,10 +60,93 @@ class OrdinaryGen(FactorDiffusor):
             actual_seed = random.randint(0, 2147483647)
 
         print(f"--- СИСТЕМА ФАКТОР: ИСПОЛЬЗУЕТСЯ ЯДРО СЛУЧАЙНОГО ЧИСЛА: {actual_seed} ---")
-        del config_dict["seed"]
         config_dict["generator"] = torch.Generator(device="cpu").manual_seed(actual_seed)
 
         image = self.pipeline(
+            **prompts_dict,
+            **config_dict
+        ).images[0]
+
+        if save_path is not None:
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            image.save(save_path)
+
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+        if self.device == "mps":
+            torch.mps.empty_cache()
+
+        return image
+
+
+class ControlNetGen(FactorDiffusor):
+    '''
+    Класс для генерации изображений с управлением через ControlNet (SDXL)
+    '''
+    def __init__(
+        self, 
+        model: str = "stabilityai/stable-diffusion-xl-base-1.0",
+        controlnet_model: str = "diffusers/controlnet-canny-sdxl-1.0"
+    ):
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        elif torch.mps.is_available():
+            self.device = "mps"    
+        print(f"--- ИНИЦИАЛИЗАЦИЯ ЯДРА СИСТЕМЫ Ф.А.К.Т.О.Р. (CONTROLNET) НА ЭВМ ТИПА {self.device.upper()} ---")
+
+        self.model = model
+        self.controlnet_model = controlnet_model
+
+        # 1. Загружаем модель ControlNet
+        controlnet = ControlNetModel.from_pretrained(
+            self.controlnet_model,
+            torch_dtype=torch.float16,
+            variant="fp16"
+        )
+
+        # 2. Загружаем пайплайн SDXL ControlNet
+        self.pipeline = StableDiffusionXLControlNetPipeline.from_pretrained(
+            self.model,
+            controlnet=controlnet,
+            torch_dtype=torch.float16, 
+            variant="fp16"
+        )
+
+        # Настройки шедулера (сохранены без изменений)
+        self.pipeline.scheduler = DPMSolverMultistepScheduler.from_config( 
+            self.pipeline.scheduler.config,
+            use_karras_sigmas=True 
+        )
+        self.pipeline.scheduler.algorithm_type = "dpmsolver++"
+
+        self.pipeline = self.pipeline.to(self.device)
+        self.pipeline.enable_attention_slicing()
+
+        print("--- СИСТЕМА ФАКТОР: МОДЕЛЬ УПРАВЛЯЕМОГО СИНТЕЗА УСПЕШНО ЗАГРУЖЕНА ---")
+
+    @factortimeinference
+    def generate_image(
+        self, 
+        prompts: FactorPrompts, 
+        config: FactorInferenceParameters, 
+        control_image: Image.Image,
+        save_path: Optional[Path] = None
+    ):
+        prompts_dict = prompts._as_dict()
+        config_dict = config._as_dict()
+
+        actual_seed = config_dict.pop("seed", None)
+
+        if actual_seed is None:
+            actual_seed = random.randint(0, 2147483647)
+
+        print(f"--- СИСТЕМА ФАКТОР: ИСПОЛЬЗУЕТСЯ ЯДРО СЛУЧАЙНОГО ЧИСЛА: {actual_seed} ---")
+        config_dict["generator"] = torch.Generator(device="cpu").manual_seed(actual_seed)
+
+        # Вызов пайплайна с подготовленной картинкой-условием
+        image = self.pipeline(
+            image=control_image,
             **prompts_dict,
             **config_dict
         ).images[0]
