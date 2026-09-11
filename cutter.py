@@ -6,9 +6,9 @@ from typing import Optional
 from diffusors_core import factortimeinference
 
 class Cutter (FactorCutter):
-    def __init__(self, cuttertype: str = "u2net"):
+    def __init__(self, model_name: str = "u2net"):
         providers = ["CUDAExecutionProvider", "MPSExecutionProvider", "CPUExecutionProvider"]
-        self.session = new_session(cuttertype, providers=providers)
+        self.session = new_session(model_name=model_name, providers=providers)
 
     @factortimeinference
     def remove_background(

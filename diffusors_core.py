@@ -5,8 +5,11 @@ from configs import FactorInferenceParameters, FactorPrompts
 import time
 from functools import wraps
 from typing import Optional
+import torch
+import gc
 
 class FactorDiffusor(ABC):
+    @abstractmethod
     def __init__(self):
         pass
 
@@ -20,19 +23,39 @@ class FactorDiffusor(ABC):
         pass
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc, tb):
         self.unload()
 
-    @abstractmethod
     def unload(self) -> None:
-        """Метод очистки памяти, обязательный для реализации каждым конкретным диффузором."""
-        pass
+        "You need to free your memory because diffusors are too heavy"
+        print(
+            "--- СИСТЕМА ФАКТОР: НАЧАТО ИЗВЛЕЧЕНИЕ МОДЕЛИ ИЗ ОПЕРАТИВНОЙ ПАМЯТИ ---"
+        )
+
+        if hasattr(self, "pipeline"):
+            del self.pipeline
+
+        gc.collect()
+
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+        elif self.device == "mps":
+            torch.mps.empty_cache()
+
+        print(
+            "--- СИСТЕМА ФАКТОР: ОПЕРАТИВНАЯ ПАМЯТЬ УСПЕШНО ОСВОБОЖДЕНА ---"
+        )
     
 
 class FactorInpainter(ABC):
+    @abstractmethod
     def __init__(self):
+        pass
+
+    def __enter__(self):
         return self
 
     @abstractmethod
@@ -62,12 +85,12 @@ class FactorCutter(ABC):
     def remove_background(self, image: Image.Image, save_path: Optional[Path] = "output.png") -> Image.Image:
         pass
 
-
+"""
 class FactorImageReader(ABC):
     @abstractmethod
     def read_image(self, path: Path) -> Image.Image:
         pass
-
+"""
 
 def factortimeinference(func):
     @wraps(func)
