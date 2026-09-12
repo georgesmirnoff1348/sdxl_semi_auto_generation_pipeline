@@ -7,8 +7,21 @@ from diffusors_core import factortimeinference
 import torch, gc
 
 class Cutter (FactorCutter):
+    @factortimeinference
     def __init__(self, model_name: str = "u2net"):
-        providers = ["CUDAExecutionProvider", "MPSExecutionProvider", "CPUExecutionProvider"]
+        providers = []
+        
+        # 1. Если есть CUDA (например, Colab с T4/V100/A100)
+        if torch.cuda.is_available():
+            providers.append("CUDAExecutionProvider")
+            
+        # 2. Если запускаем локально на macOS с чипом Apple Silicon
+        if torch.mps.is_available():
+            providers.append("MPSExecutionProvider")
+            
+        # 3. Дефолтный фоллбек на CPU
+        providers.append("CPUExecutionProvider")
+
         self.session = new_session(model_name=model_name, providers=providers)
 
     @factortimeinference
