@@ -4,6 +4,7 @@ from diffusors_core import FactorCutter
 from pathlib import Path
 from typing import Optional
 from diffusors_core import factortimeinference
+import torch, gc
 
 class Cutter (FactorCutter):
     def __init__(self, model_name: str = "u2net"):
@@ -22,6 +23,22 @@ class Cutter (FactorCutter):
             output_image.save(save_path)
 
         return output_image
+
+    def close(self):
+        """Явно выгружает сессию rembg/ONNX и чистит VRAM."""
+        if hasattr(self, 'session') and self.session is not None:
+            del self.session
+            self.session = None
+        
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 
 # Ярлык для U2net
@@ -47,3 +64,5 @@ def remove_background(picture_path: str, output_path: str):
         output_image = remove(input_image, session=session)
         output_image.save(output_path)
 """
+
+
