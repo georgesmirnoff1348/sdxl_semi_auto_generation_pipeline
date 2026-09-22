@@ -218,8 +218,8 @@ class BackInpainter(FactorInpainter):
                       save_path: Optional[Path] = None
                       ) -> Image.Image:
         alpha_print = mask
-        prompts_dict = asdict(prompts)
-        config_dict = asdict(config)
+        prompts_dict = prompts._as_dict()
+        config_dict = config._as_dict()
         inner_pad = config_dict.pop("inner_pad", 0)
         actual_seed = config_dict.pop("seed", None)
 
@@ -246,7 +246,7 @@ class BackInpainter(FactorInpainter):
 
         # Inverting: mask is the place when we can draw
         final_mask_np = cv2.bitwise_not(eroded)
-        config_dict["mask_image"] = Image.fromarray(final_mask_np)
+        final_mask = Image.fromarray(final_mask_np)
 
         print(f"--- СИСТЕМА ЦЕНЗОР: ЗАПУСК ПОДСИСТЕМЫ ДОПОЛНЕНИЯ ДАННЫХ О МЕСТОПОЛОЖЕНИИ ЧЕЛОВЕЧЕСКОГО СУБЪЕКТА ---")
         print(f"--- СИСТЕМА ЦЕНЗОР: ИСПОЛЬЗУЮТСЯ ДАННЫЕ О МЕСТЕ {prompts_dict['prompt']}")
@@ -254,8 +254,8 @@ class BackInpainter(FactorInpainter):
         image_inpainted = self.pipe(
             **prompts_dict,
             **config_dict,
-            mask_image = mask,
-            image=image
+            mask_image = final_mask,
+            image=image.convert("RGB")
         ).images[0]
 
         if save_path is not None:
