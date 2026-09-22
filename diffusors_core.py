@@ -72,11 +72,48 @@ class FactorInpainter(ABC):
     def __exit__(self):
         self.unload()
 
-    @abstractmethod
     def unload(self) -> None:
-        """Метод очистки памяти, обязательный для реализации каждым конкретным диффузором."""
-        pass
+            "You need to free your memory because diffusors are too heavy"
+            print(
+                "--- СИСТЕМА ФАКТОР: НАЧАТО ИЗВЛЕЧЕНИЕ МОДЕЛИ ИЗ ОПЕРАТИВНОЙ ПАМЯТИ ---"
+            )
+    
+            if hasattr(self, "pipeline"):
+                del self.pipeline
+    
+            gc.collect()
+    
+            if self.device == "cuda":
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+            elif self.device == "mps":
+                torch.mps.empty_cache()
+    
+            print(
+                "--- СИСТЕМА ФАКТОР: ОПЕРАТИВНАЯ ПАМЯТЬ УСПЕШНО ОСВОБОЖДЕНА ---"
+            )
 
+    def unload(self) -> None:
+        "You need to free your memory because diffusors are too heavy"
+        print(
+            "--- СИСТЕМА ФАКТОР: НАЧАТО ИЗВЛЕЧЕНИЕ МОДЕЛИ ИЗ ОПЕРАТИВНОЙ ПАМЯТИ ---"
+        )
+
+        if hasattr(self, "pipeline"):
+            del self.pipeline
+
+        gc.collect()
+
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+        elif self.device == "mps":
+            torch.mps.empty_cache()
+
+        print(
+            "--- СИСТЕМА ФАКТОР: ОПЕРАТИВНАЯ ПАМЯТЬ УСПЕШНО ОСВОБОЖДЕНА ---"
+        )
+    
 
 class FactorCutter(ABC):
     def __init__(self):

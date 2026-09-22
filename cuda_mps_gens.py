@@ -82,7 +82,10 @@ class OrdinaryGen(FactorDiffusor):
 
 class ControlNetGen(FactorDiffusor):
     '''
-    Класс для генерации изображений с управлением через ControlNet (SDXL)
+    generate with ControlNet (any type, don't forget 
+    to bring it in in configs as control_image)
+    extra-params in config: controlnet_conditioning_scale: float,
+            control_guidance_end: float,
     '''
     def __init__(
         self, 
@@ -101,8 +104,8 @@ class ControlNetGen(FactorDiffusor):
         # 1. Загружаем модель ControlNet
         controlnet = ControlNetModel.from_pretrained(
             self.controlnet_model,
-            torch_dtype=torch.float16,
-            variant="fp16"
+            torch_dtype=torch.float16#,
+            #variant="fp16"
         )
 
         # 2. Загружаем пайплайн SDXL ControlNet
