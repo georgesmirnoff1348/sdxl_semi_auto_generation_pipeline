@@ -17,7 +17,7 @@ config = FactorInferenceParameters(
 
 import PIL.ImageOps
 # Загружаем набросок
-input_sketch = Image.open("sporovy4.jpeg").convert("L")
+input_sketch = Image.open("sporovy5.jpg").convert("L")
 
 # Инвертируем: черные линии на белом -> белые линии на черном
 control_image = PIL.ImageOps.invert(input_sketch).convert("RGB")

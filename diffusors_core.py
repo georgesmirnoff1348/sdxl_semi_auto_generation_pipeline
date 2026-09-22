@@ -69,8 +69,8 @@ class FactorInpainter(ABC):
         ) -> Image.Image:
         pass
 
-    def __exit__(self):
-        self.unload()
+    def __exit__(self, exc_type, exc, tb):
+            self.unload()
 
     def unload(self) -> None:
             "You need to free your memory because diffusors are too heavy"
