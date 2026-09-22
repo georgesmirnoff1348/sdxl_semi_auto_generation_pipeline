@@ -73,47 +73,26 @@ class FactorInpainter(ABC):
             self.unload()
 
     def unload(self) -> None:
-            "You need to free your memory because diffusors are too heavy"
-            print(
-                "--- СИСТЕМА ФАКТОР: НАЧАТО ИЗВЛЕЧЕНИЕ МОДЕЛИ ИЗ ОПЕРАТИВНОЙ ПАМЯТИ ---"
-            )
-    
-            if hasattr(self, "pipeline"):
-                del self.pipeline
-    
-            gc.collect()
-    
-            if self.device == "cuda":
-                torch.cuda.empty_cache()
-                torch.cuda.ipc_collect()
-            elif self.device == "mps":
-                torch.mps.empty_cache()
-    
-            print(
-                "--- СИСТЕМА ФАКТОР: ОПЕРАТИВНАЯ ПАМЯТЬ УСПЕШНО ОСВОБОЖДЕНА ---"
-            )
+        print("--- СИСТЕМА ФАКТОР: НАЧАТО ИЗВЛЕЧЕНИЕ МОДЕЛИ ИЗ ОПЕРАТИВНОЙ ПАМЯТИ ---")
 
-    def unload(self) -> None:
-        "You need to free your memory because diffusors are too heavy"
-        print(
-            "--- СИСТЕМА ФАКТОР: НАЧАТО ИЗВЛЕЧЕНИЕ МОДЕЛИ ИЗ ОПЕРАТИВНОЙ ПАМЯТИ ---"
-        )
+        for attr in ("pipeline", "pipe"):
+            if hasattr(self, attr):
+                delattr(self, attr)
 
-        if hasattr(self, "pipeline"):
-            del self.pipeline
+        if hasattr(self, "pipe"):
+            del self.pipe
 
         gc.collect()
 
         if self.device == "cuda":
+            torch.cuda.synchronize()
             torch.cuda.empty_cache()
             torch.cuda.ipc_collect()
         elif self.device == "mps":
             torch.mps.empty_cache()
 
-        print(
-            "--- СИСТЕМА ФАКТОР: ОПЕРАТИВНАЯ ПАМЯТЬ УСПЕШНО ОСВОБОЖДЕНА ---"
-        )
-    
+        print("--- СИСТЕМА ФАКТОР: ОПЕРАТИВНАЯ ПАМЯТЬ УСПЕШНО ОСВОБОЖДЕНА ---")
+        
 
 class FactorCutter(ABC):
     def __init__(self):
