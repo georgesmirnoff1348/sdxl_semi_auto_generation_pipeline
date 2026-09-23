@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image
 
 prompts = FactorPrompts(
-        prompt="a photorealistic scary creepy uncanny old man with exophtalmic severely bulging eyes and extremely wide grin smile",
+        prompt="a photorealistic scary creepy uncanny old man with exophtalmic severely bulging eyes and extremely wide grin smile, white hospital wall background",
         negative_prompt="drawing, 3d render, digial art, blurry, normal face, red eyes"
     )
 
@@ -17,7 +17,7 @@ config = FactorInferenceParameters(
 
 import PIL.ImageOps
 # Загружаем набросок
-input_sketch = Image.open("sporovy5.jpg").convert("L")
+input_sketch = Image.open("sporomanca.jpg").convert("L")
 
 # Инвертируем: черные линии на белом -> белые линии на черном
 control_image = PIL.ImageOps.invert(input_sketch).convert("RGB")
