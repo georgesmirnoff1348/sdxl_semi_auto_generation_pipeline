@@ -39,7 +39,7 @@ class OrdinaryGen(FactorDiffusor):
             use_karras_sigmas = True #включаем сигмы Карраса для ускорения генерации 
         )
         self.pipeline.scheduler.algorithm_type = "dpmsolver++"
-        self.pipeline = self.pipeline.to(self.device)
+        self.pipeline = self.pipeline.to(self.device, torch.float16)
         self.pipeline.enable_attention_slicing()
         print("--- СИСТЕМА ФАКТОР: МОДЕЛЬ ИЗВЛЕЧЕНИЯ УСРЕДНЕННЫХ ОБРАЗОВ УСПЕШНО ЗАГРУЖЕНА В ОПЕРАТИВНУЮ ПАМЯТЬ ---")
 
