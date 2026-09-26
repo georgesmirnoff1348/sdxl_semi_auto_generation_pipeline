@@ -1,0 +1,33 @@
+# Пример задачи: anomaly detection (один класс `normal`).
+# Полная схема полей — в README, раздел «datasetgen».
+version: 1
+task: anomaly_detection
+output_dir: ./out/anomaly
+seed: 20260926
+
+dataset_description:
+  enabled: false         # отчёты не создаются (opt-in фича)
+  request_file: null
+  max_prompt_rows: 50
+
+generation:
+  mode: single_layer
+  cutter: u2net
+  cutter_model_name: null
+
+inference:
+  num_inference_steps: 24
+  guidance_scale: 8.0
+  width: 1024
+  height: 1024
+  extra: {}
+
+classes:
+  - name: normal         # для task: anomaly_detection имя класса обязательно `normal`
+    count: 20
+    template: "a {worker} wearing {uniform}, {pose}, studio photography, 1980s photo"
+    negative_prompt: "hat, green, smooth skin, 3d render, anime, cartoon, text, watermark"
+    variables:
+      worker: [factory worker, industrial engineer]
+      uniform: [complete protective equipment, helmet and high-visibility workwear]
+      pose: [standing naturally, inspecting machinery]

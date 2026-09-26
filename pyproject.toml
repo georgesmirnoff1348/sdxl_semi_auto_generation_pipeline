@@ -1,19 +1,79 @@
 [project]
 name = "ai-basic-alina"
 version = "0.1.0"
-description = "Add your description here"
+description = "datasetgen: YAML-driven generator of synthetic computer-vision datasets on top of this repository's SDXL pipelines"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
+keywords = [
+	"dataset",
+	"synthetic-data",
+	"diffusers",
+	"sdxl",
+	"computer-vision",
+	"image-generation",
+	"yaml",
+	"cli",
+]
+classifiers = [
+	"Development Status :: 3 - Alpha",
+	"Environment :: Console",
+	"Intended Audience :: Developers",
+	"Intended Audience :: Science/Research",
+	"Operating System :: MacOS :: MacOS X",
+	"Operating System :: POSIX :: Linux",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.12",
+	"Topic :: Scientific/Engineering :: Artificial Intelligence",
+	"Topic :: Scientific/Engineering :: Image Processing",
+	"Typing :: Typed",
+]
 dependencies = [
+	"pyyaml",
+]
+
+[project.optional-dependencies]
+single-layer = [
 	"accelerate",
 	"diffusers",
 	"numpy",
 	"opencv-python>=5.0.0.93",
 	"pillow",
-	"rembg>=2.0.81",
 	"safetensors",
-	"scikit-image>=0.26.0",
 	"torch",
-	"torchvision>=0.28.0",
 	"transformers",
 ]
+two-layer = [
+	"ai-basic-alina[single-layer]",
+	"onnxruntime>=1.17.0",
+	"rembg>=2.0.81",
+]
+
+[project.scripts]
+datasetgen = "datasetgen.cli:main"
+
+[dependency-groups]
+dev = [
+	"ai-basic-alina[two-layer]",
+	"scikit-image>=0.26.0",
+	"torchvision>=0.28.0",
+]
+
+[build-system]
+# Версия build-backend зафиксирована: `uv build`/`uv build` в verify_wheel.py
+# собирает wheel в изолированном окружении, и без точного пина каждый запуск тянул
+# бы свежий hatchling с PyPI. Пин НЕ меняет версии пакетов в uv.lock (build-system
+# в lockfile не попадает), поэтому `uv lock --check` остаётся зелёным.
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["datasetgen"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"configs.py" = "configs.py"
+"cutter.py" = "cutter.py"
+"cuda_mps_gens.py" = "cuda_mps_gens.py"
+"diffusors_core.py" = "diffusors_core.py"
+"filesystems_core.py" = "filesystems_core.py"
+"examples/classification.yaml" = "datasetgen/examples/classification.yaml"
+"examples/anomaly.yaml" = "datasetgen/examples/anomaly.yaml"

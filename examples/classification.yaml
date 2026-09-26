@@ -1,0 +1,58 @@
+# Пример задачи: классификация «здоровый работник» / «заражённый работник».
+# Полная схема полей — в README, раздел «datasetgen».
+version: 1
+task: classification
+output_dir: ./out/classification
+seed: 20260926
+
+dataset_description:
+  enabled: true          # в конце прогона создаётся dataset_description.md
+  request_file: null     # задайте путь, чтобы получить ещё и заготовку для агента
+  max_prompt_rows: 50    # сколько строк таблицы промптов печатать в отчёте
+
+generation:
+  mode: single_layer     # single_layer | two_layer
+  cutter: u2net          # u2net | birefnet | custom (только для two_layer)
+  cutter_model_name: null
+  # Для two_layer добавьте блок background (обязателен):
+  # background:
+  #   model_id: diffusers/stable-diffusion-xl-1.0-inpainting-0.1
+  #   template: "background photography of {place}, 1980s, casual photo"
+  #   negative_prompt: "people, illustration, human, outdoor, text"
+  #   variables:
+  #     place: [hospital room with painted wall, industrial hall]
+  #   inference:
+  #     num_inference_steps: 20
+  #     guidance_scale: 7.0
+  #     width: 1024
+  #     height: 1024
+  #     extra:
+  #       inner_pad: 20
+  #       strength: 0.9
+
+inference:
+  num_inference_steps: 20
+  guidance_scale: 7.0
+  width: 1024
+  height: 1024
+  extra: {}              # произвольные kwargs пайплайна (напр. inner_pad, strength)
+
+classes:
+  - name: class_a        # ^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$, не зарезервировано
+    count: 12            # int >= 1
+    template: "a {worker} wearing {uniform}, {pose}, studio photography"
+    negative_prompt: "3d render, anime, blurry, text, watermark"
+    variables:           # каждый ключ обязан встречаться в шаблоне и наоборот
+      worker: [factory worker, industrial engineer]
+      uniform: [complete protective equipment, helmet and high-visibility workwear]
+      pose: [standing naturally, inspecting machinery]
+  - name: class_b
+    count: 12
+    template: "a {worker} wearing {uniform}, {anomaly}, concrete background, 1980s photo"
+    negative_prompt: "hat, green, smooth skin, 3d render, anime, cartoon"
+    variables:
+      worker: [factory worker, industrial engineer]
+      uniform: [complete protective equipment, helmet and high-visibility workwear]
+      anomaly:
+        - "thick rough grey concrete crust growing on the face skin"
+        - "cracked grey cement scaling on the skin, grotesque appearance"

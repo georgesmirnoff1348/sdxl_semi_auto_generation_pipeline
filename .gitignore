@@ -1,16 +1,29 @@
 .cache/
 .DS_Store
 .venv/
+.python-version.local
 
 # Python cache and build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.hypothesis/
+.tox/
+.nox/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 *.egg-info/
 build/
 dist/
+/out/
+
+# Local IDE/agent state
+.roomodes
+.roo/
+.vscode/settings.json
+.vscode/*.local.json

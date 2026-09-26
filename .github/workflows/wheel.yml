@@ -1,0 +1,71 @@
+# Автоматическая проверка колеса: дешёвая и честная.
+#
+# Про сеть честно: job НЕ работает полностью офлайн. Сеть нужна на подготовительных
+# шагах — `uv sync --locked` и сборка колеса скачивают зависимости и изолированный
+# build backend. Сами проверки сети не требуют: тесты unittest не делают ни одного
+# сетевого запроса (ни Hugging Face, ни PyPI), и verify_wheel.py лишь собирает и
+# ставит уже скачанное.
+#
+# Что проверяется (каждый шаг роняет workflow, сетевые ошибки НЕ маскируются):
+#   1. `uv sync --locked`  — uv.lock соответствует pyproject.toml, окружение собирается
+#      (шаг может обращаться к сети: кэш runner'а пуст);
+#   2. полный unittest suite — сами тесты не ходят в сеть, не грузят модели,
+#      не требуют GPU;
+#   3. `tools/verify_wheel.py` — колесо собирается, устанавливается в чистый venv
+#      БЕЗ исходников и даёт рабочий `datasetgen` (--help/--version/--dry-run,
+#      legacy-модули из site-packages, preflight two_layer -> код 9).
+#      Сборка колеса может скачать build backend, если его нет в кэше.
+#
+# Реальная генерация изображений сюда НЕ входит: она требует GPU, CUDA/MPS и
+# скачивания весов модели (см. README, раздел «Что не проверено локально»).
+name: wheel
+
+on:
+  push:
+  pull_request:
+
+# Workflow только читает репозиторий и пишет во временный каталог раннера.
+permissions:
+  contents: read
+
+# Новый push в ту же ветку отменяет предыдущий прогон (это не маскировка ошибок:
+# отменённый прогон просто перестаёт быть актуальным).
+concurrency:
+  group: wheel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  wheel:
+    name: unittest + verify_wheel
+    runs-on: ubuntu-latest
+    # Группа `dev` тянет torch с CUDA-библиотеками, поэтому шаг долгий; потолок
+    # нужен, чтобы зависшая загрузка не висела вечно.
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Ровно та версия, на которой проект собирается локально (.python-version),
+          # и она же версия чистого venv внутри verify_wheel.py (--python 3.13).
+          python-version-file: .python-version
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          # Версия uv зафиксирована, чтобы один и тот же uv.lock всегда читался
+          # одинаково. При обновлении uv правится только эта строка.
+          version: "0.11.29"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: uv sync --locked
+        run: uv sync --locked
+
+      - name: unittest
+        run: uv run --locked python -m unittest discover -s tests -t . -v
+
+      - name: verify wheel
+        run: uv run --locked python tools/verify_wheel.py

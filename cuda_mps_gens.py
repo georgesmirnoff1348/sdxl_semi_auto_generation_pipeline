@@ -50,8 +50,8 @@ class OrdinaryGen(FactorDiffusor):
         config: FactorInferenceParameters, 
         save_path: Optional[Path] = None
         ):
-        prompts_dict = asdict(prompts)
-        config_dict = asdict(config)
+        prompts_dict = prompts._as_dict()
+        config_dict = config._as_dict()
 
         actual_seed = config_dict.pop("seed", None)
 
@@ -336,8 +336,8 @@ class ControlNetInpainter(FactorInpainter):
         save_path: Optional[Path] = None
     ) -> Image.Image:
 
-        prompts_dict = asdict(prompts)
-        config_dict = asdict(config)
+        prompts_dict = prompts._as_dict()
+        config_dict = config._as_dict()
 
         if alpha_print.mode in ("RGBA", "LA"):
             mask_np = np.array(alpha_print.split()[-1])
